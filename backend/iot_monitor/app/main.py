@@ -10,7 +10,7 @@ app = FastAPI(title=settings.project_name, version=settings.version)
 @app.get("/")
 def read_root() -> dict[str, str]:
     """Mensaje de bienvenida para la API."""
-    return {"message": "Bienvenido a iotMonitor"}
+    return {"message": "Bienvenido a IIoT monitor"}
 
 
 @app.get("/health")
