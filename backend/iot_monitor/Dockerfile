@@ -10,6 +10,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 
 # Instalar dependencias
+ENV UV_PROJECT_ENVIRONMENT="/usr/local/"
 RUN uv sync --frozen
 
 # Copiar código de la aplicación

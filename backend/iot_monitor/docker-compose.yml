@@ -26,7 +26,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
+      - ./app:/app/app
     environment:
       IOT_MONITOR_DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/iot_monitor
     depends_on:
