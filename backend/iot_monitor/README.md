@@ -16,6 +16,8 @@ Proyecto FastAPI para centralizar datos IoT siguiendo las especificaciones de `b
 - `GET /v1/users/{user_id}` – Detalle de un usuario.
 - `PUT /v1/users/{user_id}` – Actualizar un usuario.
 - `DELETE /v1/users/{user_id}` – Borrado lógico de un usuario.
+- `POST /v1/iot/data` – Ingesta de lecturas IoT.
+
 
 ## Ejecución local con uv
 
