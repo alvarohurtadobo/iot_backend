@@ -13,7 +13,7 @@ COPY pyproject.toml uv.lock ./
 ENV UV_PROJECT_ENVIRONMENT="/usr/local/"
 RUN uv sync --frozen
 
-# Copiar código de la aplicación
+# Copiar código de la aplicación (solo para producción, en desarrollo se monta como volumen)
 COPY . .
 
 # Exponer puerto 8000

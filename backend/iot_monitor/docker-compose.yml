@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   db:
@@ -23,10 +22,11 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: iot_monitor_api
+    working_dir: /app
     ports:
       - "8000:8000"
     volumes:
-      - ./app:/app/app
+      - .:/app:cached
     environment:
       IOT_MONITOR_DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/iot_monitor
     depends_on:

@@ -4,6 +4,9 @@
 start:
 	docker-compose up -d
 
+start-force:
+	docker-compose up --build
+
 # Detener los contenedores
 stop:
 	docker-compose down
