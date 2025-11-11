@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 from datetime import datetime
+from unittest.mock import MagicMock
 from uuid import UUID, uuid4
 
-import pytest
 from fastapi import status
+from fastapi.testclient import TestClient
 
 from app.iot_data.schemas import IoTDataRecord
 
@@ -15,7 +16,7 @@ class TestIoTDataIngestion:
     """Tests para el endpoint de ingestión de datos IoT."""
 
     def test_post_iot_data_success(
-        self, client: pytest.fixture, mock_iot_service: pytest.fixture
+        self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
         """Test: POST /v1/iot/data con datos válidos retorna 201."""
         # Arrange
@@ -43,7 +44,7 @@ class TestIoTDataIngestion:
 
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
-        assert mock_iot_service.store.called_once()
+        mock_iot_service.store.assert_called_once()
         
         data = response.json()
         assert data["sensor_id"] == str(sensor_id)
@@ -52,7 +53,7 @@ class TestIoTDataIngestion:
         assert UUID(data["id"]) is not None
 
     def test_post_iot_data_with_default_timestamp(
-        self, client: pytest.fixture, mock_iot_service: pytest.fixture
+        self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
         """Test: POST /v1/iot/data sin timestamp usa timestamp por defecto."""
         # Arrange
@@ -78,7 +79,7 @@ class TestIoTDataIngestion:
 
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
-        assert mock_iot_service.store.called_once()
+        mock_iot_service.store.assert_called_once()
         
         data = response.json()
         assert data["sensor_id"] == str(sensor_id)
@@ -86,7 +87,7 @@ class TestIoTDataIngestion:
         assert "timestamp" in data
 
     def test_post_iot_data_missing_sensor_id(
-        self, client: pytest.fixture, mock_iot_service: pytest.fixture
+        self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
         """Test: POST /v1/iot/data sin sensor_id retorna 422."""
         # Arrange
@@ -105,7 +106,7 @@ class TestIoTDataIngestion:
         assert "detail" in error_detail
 
     def test_post_iot_data_missing_value(
-        self, client: pytest.fixture, mock_iot_service: pytest.fixture
+        self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
         """Test: POST /v1/iot/data sin value retorna 422."""
         # Arrange
@@ -121,7 +122,7 @@ class TestIoTDataIngestion:
         assert not mock_iot_service.store.called
 
     def test_post_iot_data_invalid_sensor_id_format(
-        self, client: pytest.fixture, mock_iot_service: pytest.fixture
+        self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
         """Test: POST /v1/iot/data con sensor_id inválido retorna 422."""
         # Arrange
@@ -138,7 +139,7 @@ class TestIoTDataIngestion:
         assert not mock_iot_service.store.called
 
     def test_post_iot_data_invalid_value_type(
-        self, client: pytest.fixture, mock_iot_service: pytest.fixture
+        self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
         """Test: POST /v1/iot/data con value no numérico retorna 422."""
         # Arrange
@@ -155,7 +156,7 @@ class TestIoTDataIngestion:
         assert not mock_iot_service.store.called
 
     def test_post_iot_data_invalid_timestamp_format(
-        self, client: pytest.fixture, mock_iot_service: pytest.fixture
+        self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
         """Test: POST /v1/iot/data con timestamp inválido retorna 422."""
         # Arrange
@@ -173,7 +174,7 @@ class TestIoTDataIngestion:
         assert not mock_iot_service.store.called
 
     def test_post_iot_data_negative_value(
-        self, client: pytest.fixture, mock_iot_service: pytest.fixture
+        self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
         """Test: POST /v1/iot/data acepta valores negativos."""
         # Arrange
@@ -203,7 +204,7 @@ class TestIoTDataIngestion:
         assert data["value"] == value
 
     def test_post_iot_data_zero_value(
-        self, client: pytest.fixture, mock_iot_service: pytest.fixture
+        self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
         """Test: POST /v1/iot/data acepta valor cero."""
         # Arrange
@@ -233,7 +234,7 @@ class TestIoTDataIngestion:
         assert data["value"] == value
 
     def test_post_iot_data_very_large_value(
-        self, client: pytest.fixture, mock_iot_service: pytest.fixture
+        self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
         """Test: POST /v1/iot/data acepta valores muy grandes."""
         # Arrange
