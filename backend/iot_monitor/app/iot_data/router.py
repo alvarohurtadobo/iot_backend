@@ -1,4 +1,4 @@
-"""Router dedicado a ingestión de datos IoT."""
+"""Router dedicated to IoT data ingestion."""
 
 from __future__ import annotations
 
@@ -15,6 +15,6 @@ def ingest_iot_data(
     payload: IoTDataIn,
     service: IoTDataService = Depends(get_iot_data_service),
 ) -> IoTDataRecord:
-    """Recibir y almacenar una lectura proveniente de un dispositivo IoT."""
+    """Receive and store a reading from an IoT device."""
 
     return service.store(payload)

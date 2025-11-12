@@ -1,4 +1,4 @@
-"""Esquemas Pydantic para ingestión de datos IoT."""
+"""Pydantic schemas for IoT data ingestion."""
 
 from __future__ import annotations
 
@@ -9,17 +9,17 @@ from pydantic import BaseModel, Field
 
 
 class IoTDataIn(BaseModel):
-    """Payload recibido desde dispositivos IoT."""
+    """Payload received from IoT devices."""
 
-    sensor_id: UUID = Field(..., description="Identificador del sensor que envía el dato")
-    value: float = Field(..., description="Valor numérico reportado por el sensor")
+    sensor_id: UUID = Field(..., description="Identifier of the sensor sending the data")
+    value: float = Field(..., description="Numeric value reported by the sensor")
     timestamp: datetime = Field(
         default_factory=datetime.utcnow,
-        description="Momento en que se generó la lectura",
+        description="Time when the reading was generated",
     )
 
 
 class IoTDataRecord(IoTDataIn):
-    """Representación interna/en respuesta de un dato almacenado."""
+    """Internal/response representation of stored data."""
 
-    id: UUID = Field(default_factory=uuid4, description="Identificador único de la lectura")
+    id: UUID = Field(default_factory=uuid4, description="Unique identifier of the reading")
