@@ -1,4 +1,4 @@
-"""Configuración compartida para tests."""
+"""Shared configuration for tests."""
 
 from __future__ import annotations
 
@@ -13,14 +13,14 @@ from app.main import app
 
 @pytest.fixture
 def mock_iot_service() -> MagicMock:
-    """Mock del servicio IoT para tests unitarios."""
+    """Mock IoT service for unit tests."""
     service = MagicMock()
     return service
 
 
 @pytest.fixture
 def client(mock_iot_service: MagicMock) -> TestClient:
-    """Cliente de prueba con servicio mockeado."""
+    """Test client with mocked service."""
     app.dependency_overrides[get_iot_data_service] = lambda: mock_iot_service
     with TestClient(app) as test_client:
         yield test_client

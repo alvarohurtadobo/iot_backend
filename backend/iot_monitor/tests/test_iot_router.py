@@ -1,4 +1,4 @@
-"""Tests unitarios para el router de IoT."""
+"""Unit tests for the IoT router."""
 
 from __future__ import annotations
 
@@ -13,12 +13,12 @@ from app.iot_data.schemas import IoTDataRecord
 
 
 class TestIoTDataIngestion:
-    """Tests para el endpoint de ingestión de datos IoT."""
+    """Tests for the IoT data ingestion endpoint."""
 
     def test_post_iot_data_success(
         self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
-        """Test: POST /v1/iot/data con datos válidos retorna 201."""
+        """Test: POST /v1/iot/data with valid data returns 201."""
         # Arrange
         sensor_id = uuid4()
         value = 25.5
@@ -55,7 +55,7 @@ class TestIoTDataIngestion:
     def test_post_iot_data_with_default_timestamp(
         self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
-        """Test: POST /v1/iot/data sin timestamp usa timestamp por defecto."""
+        """Test: POST /v1/iot/data without timestamp uses default timestamp."""
         # Arrange
         sensor_id = uuid4()
         value = 30.0
@@ -89,7 +89,7 @@ class TestIoTDataIngestion:
     def test_post_iot_data_missing_sensor_id(
         self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
-        """Test: POST /v1/iot/data sin sensor_id retorna 422."""
+        """Test: POST /v1/iot/data without sensor_id returns 422."""
         # Arrange
         payload = {
             "value": 25.5,
@@ -108,7 +108,7 @@ class TestIoTDataIngestion:
     def test_post_iot_data_missing_value(
         self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
-        """Test: POST /v1/iot/data sin value retorna 422."""
+        """Test: POST /v1/iot/data without value returns 422."""
         # Arrange
         payload = {
             "sensor_id": str(uuid4()),
@@ -124,7 +124,7 @@ class TestIoTDataIngestion:
     def test_post_iot_data_invalid_sensor_id_format(
         self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
-        """Test: POST /v1/iot/data con sensor_id inválido retorna 422."""
+        """Test: POST /v1/iot/data with invalid sensor_id returns 422."""
         # Arrange
         payload = {
             "sensor_id": "not-a-valid-uuid",
@@ -141,7 +141,7 @@ class TestIoTDataIngestion:
     def test_post_iot_data_invalid_value_type(
         self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
-        """Test: POST /v1/iot/data con value no numérico retorna 422."""
+        """Test: POST /v1/iot/data with non-numeric value returns 422."""
         # Arrange
         payload = {
             "sensor_id": str(uuid4()),
@@ -158,7 +158,7 @@ class TestIoTDataIngestion:
     def test_post_iot_data_invalid_timestamp_format(
         self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
-        """Test: POST /v1/iot/data con timestamp inválido retorna 422."""
+        """Test: POST /v1/iot/data with invalid timestamp returns 422."""
         # Arrange
         payload = {
             "sensor_id": str(uuid4()),
@@ -176,7 +176,7 @@ class TestIoTDataIngestion:
     def test_post_iot_data_negative_value(
         self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
-        """Test: POST /v1/iot/data acepta valores negativos."""
+        """Test: POST /v1/iot/data accepts negative values."""
         # Arrange
         sensor_id = uuid4()
         value = -10.5
@@ -206,7 +206,7 @@ class TestIoTDataIngestion:
     def test_post_iot_data_zero_value(
         self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
-        """Test: POST /v1/iot/data acepta valor cero."""
+        """Test: POST /v1/iot/data accepts zero value."""
         # Arrange
         sensor_id = uuid4()
         value = 0.0
@@ -236,7 +236,7 @@ class TestIoTDataIngestion:
     def test_post_iot_data_very_large_value(
         self, client: TestClient, mock_iot_service: MagicMock
     ) -> None:
-        """Test: POST /v1/iot/data acepta valores muy grandes."""
+        """Test: POST /v1/iot/data accepts very large values."""
         # Arrange
         sensor_id = uuid4()
         value = 999999.999
