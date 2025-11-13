@@ -25,7 +25,7 @@ class TimeData(Base):
     # Relaciones
     sensor = relationship("Sensor", back_populates="time_data")
     device = relationship("Device", back_populates="time_data")
-    reports = relationship("Report", secondary=report_time_data, back_populates="time_data")
+    reports = relationship("Report", secondary="report_time_data", back_populates="time_data")
 
     # Índice compuesto para consultas frecuentes
     __table_args__ = (
