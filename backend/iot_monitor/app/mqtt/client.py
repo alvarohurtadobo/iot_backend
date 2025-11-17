@@ -4,8 +4,7 @@ import asyncio
 import json
 import logging
 import threading
-from queue import Queue
-from typing import Callable
+from queue import Empty, Queue
 
 import paho.mqtt.client as mqtt
 from pydantic import ValidationError
@@ -121,7 +120,7 @@ class MQTTClient:
                 try:
                     message = self._message_queue.get_nowait()
                     await self._process_message(message)
-                except Exception:
+                except Empty:
                     # Si no hay mensajes, esperar un poco antes de intentar de nuevo
                     await asyncio.sleep(0.1)
             except Exception as e:
