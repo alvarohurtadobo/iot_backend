@@ -11,6 +11,15 @@ class Settings(BaseSettings):
     database_url: str = (
         "postgresql+psycopg2://postgres:postgres@localhost:5432/iot_monitor"
     )
+    
+    # Configuración MQTT
+    mqtt_broker_host: str = "localhost"
+    mqtt_broker_port: int = 1883
+    mqtt_username: str | None = None
+    mqtt_password: str | None = None
+    mqtt_topic: str = "iot/data"
+    mqtt_client_id: str = "iot_monitor_client"
+    mqtt_enabled: bool = True
 
     model_config = SettingsConfigDict(
         env_file=".env",
