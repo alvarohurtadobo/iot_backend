@@ -3,8 +3,6 @@
 import asyncio
 import json
 import logging
-from contextlib import asynccontextmanager
-from typing import Callable
 
 from aiomqtt import Client, MqttError
 from pydantic import ValidationError
@@ -96,7 +94,8 @@ class MQTTClient:
 
                 async for message in messages:
                     payload = message.payload.decode("utf-8")
-                    logger.debug(f"Mensaje recibido en {message.topic.value}: {payload}")
+                    topic = str(message.topic)
+                    logger.debug(f"Mensaje recibido en {topic}: {payload}")
                     await self._process_message(payload)
 
         except MqttError as e:
