@@ -1,262 +1,654 @@
 # IoT Backend
 
-Backend for centralization of data from multiple IoT devices.
+Backend para centralización de datos de múltiples dispositivos IoT. Plataforma FastAPI que recibe datos de sensores mediante MQTT y HTTP, almacenándolos en PostgreSQL y proporcionando una API REST para dashboards y aplicaciones móviles.
 
-## Stacks
+## 📋 Tabla de Contenidos
 
-### Frontend
+- [Arquitectura](#arquitectura)
+- [Stack Tecnológico](#stack-tecnológico)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [Instalación](#instalación)
+- [Configuración](#configuración)
+- [Ejecución con Docker](#ejecución-con-docker)
+- [Migraciones de Base de Datos](#migraciones-de-base-de-datos)
+- [MQTT](#mqtt)
+- [API REST](#api-rest)
+- [Integración con Frontend React](#integración-con-frontend-react)
+- [Endpoints Disponibles](#endpoints-disponibles)
 
-- Typescript
-- CSS Modules
-- SASS
+## 🏗️ Arquitectura
 
-### Mobile
-- iOS
-  - Swift
-  - SwiftUI
-- Android
-  - Kotlin
-  - Jetpack Compose
+```
+┌─────────────────┐
+│  IoT Devices    │
+│  (Sensores)     │
+└────────┬────────┘
+         │
+         │ MQTT / HTTP
+         │
+┌────────▼─────────────────────────────────────┐
+│         FastAPI Gateway                       │
+│  ┌─────────────────────────────────────────┐ │
+│  │  MQTT Client (paho-mqtt)               │ │
+│  │  - Escucha tópico: iot/data            │ │
+│  │  - Valida y almacena TimeData          │ │
+│  └─────────────────────────────────────────┘ │
+│  ┌─────────────────────────────────────────┐ │
+│  │  REST API (FastAPI)                     │ │
+│  │  - /v1/dashboard/*                      │ │
+│  │  - /v1/iot/*                            │ │
+│  └─────────────────────────────────────────┘ │
+└────────┬───────────────────────────────────────┘
+         │
+         │ SQLAlchemy ORM
+         │
+┌────────▼────────┐
+│   PostgreSQL     │
+│   (Base de datos)│
+└──────────────────┘
+         │
+         │
+┌────────▼────────┐
+│   Dashboard     │
+│   (React)       │
+└─────────────────┘
+```
+
+### Flujo de Datos
+
+1. **Ingesta de Datos IoT**:
+   - Los dispositivos IoT envían datos mediante MQTT al tópico `iot/data`
+   - El cliente MQTT valida los mensajes con Pydantic
+   - Los datos se almacenan automáticamente en PostgreSQL
+
+2. **API REST**:
+   - El dashboard y aplicaciones móviles consumen datos mediante endpoints REST
+   - Los datos se consultan desde PostgreSQL usando SQLAlchemy ORM
+
+## 🛠️ Stack Tecnológico
 
 ### Backend
-- Python
-- FastAPI
-- PostgreSQL
+- **Python 3.11+** - Lenguaje principal
+- **FastAPI** - Framework web moderno y rápido
+- **PostgreSQL** - Base de datos relacional
+- **SQLAlchemy 2.0** - ORM para acceso a datos
+- **Alembic** - Migraciones de base de datos
+- **Pydantic** - Validación de datos y configuración
+- **paho-mqtt** - Cliente MQTT para recepción de datos IoT
+- **uv** - Gestor de dependencias y entornos virtuales
+- **Uvicorn** - Servidor ASGI de alto rendimiento
 
-## Contracts
+### Frontend (Planeado)
+- **TypeScript** - Lenguaje tipado
+- **React** - Framework de UI
+- **CSS Modules** - Estilos modulares
+- **SASS** - Preprocesador CSS
 
-### Entities
-1. TimeData
-2. Sensor
-3. SensorType
-4. Device
-5. DeviceType
-6. Machine
-7. User
-8. Role
-9. Report
-10. Business
-11. Branch
+### Mobile (Planeado)
+- **iOS**: Swift + SwiftUI
+- **Android**: Kotlin + Jetpack Compose
 
-### Contracts
-- TimeData
+## 📁 Estructura del Proyecto
+
+```
+iot_backend/
+├── backend/
+│   ├── iot_monitor/              # Aplicación principal
+│   │   ├── alembic/              # Migraciones de base de datos
+│   │   │   ├── versions/         # Archivos de migración
+│   │   │   └── env.py           # Configuración Alembic
+│   │   ├── app/
+│   │   │   ├── api/             # Endpoints REST
+│   │   │   │   ├── routers/    # Routers de FastAPI
+│   │   │   │   └── schemas/    # Schemas Pydantic para API
+│   │   │   ├── core/           # Configuración central
+│   │   │   │   └── config.py  # Settings y variables de entorno
+│   │   │   ├── db/             # Base de datos
+│   │   │   ├── models/         # Modelos SQLAlchemy
+│   │   │   └── base.py         # Configuración SQLAlchemy
+│   │   │   ├── iot_data/       # Módulo de datos IoT
+│   │   │   ├── mqtt/           # Cliente MQTT
+│   │   │   │   ├── client.py  # Cliente paho-mqtt
+│   │   │   │   └── schemas.py # Schemas para mensajes MQTT
+│   │   │   └── main.py         # Punto de entrada FastAPI
+│   │   ├── docker-compose.yml  # Configuración Docker Compose
+│   │   ├── Dockerfile          # Imagen Docker
+│   │   ├── pyproject.toml      # Dependencias y configuración
+│   │   └── alembic.ini         # Configuración Alembic
+│   └── specs/                   # Especificaciones del proyecto
+│       ├── 00_contracts.md     # Contratos de entidades y endpoints
+│       └── 01_setup.md         # Guía de configuración
+├── frontend/                    # Frontend React (pendiente)
+└── mobile/                      # Aplicaciones móviles (pendiente)
+```
+
+## 🚀 Instalación
+
+### Requisitos Previos
+
+- Python 3.11 o superior
+- PostgreSQL 15 o superior
+- Docker y Docker Compose (opcional, para desarrollo con contenedores)
+- uv (gestor de dependencias Python) - [Instalación](https://github.com/astral-sh/uv)
+
+### Instalación Local
+
+1. **Clonar el repositorio**:
+```bash
+git clone <repository-url>
+cd iot_backend
+```
+
+2. **Navegar al directorio del backend**:
+```bash
+cd backend/iot_monitor
+```
+
+3. **Crear entorno virtual e instalar dependencias**:
+```bash
+# Crear entorno virtual
+uv venv --python 3.11
+
+# Activar entorno virtual
+# En Linux/Mac:
+source .venv/bin/activate
+# En Windows:
+# .venv\Scripts\activate
+
+# Instalar dependencias
+uv sync
+```
+
+4. **Configurar variables de entorno**:
+```bash
+# Crear archivo .env en backend/iot_monitor/
+cp .env.example .env  # Si existe, o crear manualmente
+```
+
+Editar `.env` con tus configuraciones:
+```env
+IOT_MONITOR_DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/iot_monitor
+IOT_MONITOR_MQTT_BROKER_HOST=localhost
+IOT_MONITOR_MQTT_BROKER_PORT=1883
+IOT_MONITOR_MQTT_TOPIC=iot/data
+IOT_MONITOR_MQTT_ENABLED=true
+```
+
+5. **Iniciar PostgreSQL** (si no usas Docker):
+```bash
+# Asegúrate de que PostgreSQL esté corriendo
+# Crear base de datos
+createdb iot_monitor
+```
+
+6. **Ejecutar migraciones**:
+```bash
+# Aplicar migraciones de base de datos
+uv run alembic upgrade head
+```
+
+7. **Iniciar el servidor**:
+```bash
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+El servidor estará disponible en `http://localhost:8000`
+
+- **Documentación interactiva**: `http://localhost:8000/docs`
+- **Documentación alternativa**: `http://localhost:8000/redoc`
+
+## 🐳 Ejecución con Docker
+
+### Usando Docker Compose (Recomendado)
+
+1. **Navegar al directorio del backend**:
+```bash
+cd backend/iot_monitor
+```
+
+2. **Iniciar servicios** (PostgreSQL + API):
+```bash
+docker-compose up -d
+```
+
+3. **Aplicar migraciones**:
+```bash
+# Ejecutar migraciones dentro del contenedor
+docker-compose exec api uv run alembic upgrade head
+```
+
+4. **Ver logs**:
+```bash
+docker-compose logs -f api
+```
+
+5. **Detener servicios**:
+```bash
+docker-compose down
+```
+
+### Variables de Entorno en Docker
+
+Las variables de entorno se pueden configurar en `docker-compose.yml` o mediante un archivo `.env`:
+
+```yaml
+environment:
+  IOT_MONITOR_DATABASE_URL: postgresql+psycopg2://postgres:postgres@db:5432/iot_monitor
+  IOT_MONITOR_MQTT_BROKER_HOST: mosquitto  # Si tienes un broker MQTT en Docker
+  IOT_MONITOR_MQTT_BROKER_PORT: 1883
+  IOT_MONITOR_MQTT_ENABLED: "true"
+```
+
+### Agregar Broker MQTT a Docker Compose
+
+Para agregar un broker MQTT (Mosquitto) a tu stack, agrega esto a `docker-compose.yml`:
+
+```yaml
+services:
+  mqtt:
+    image: eclipse-mosquitto:latest
+    container_name: iot_monitor_mqtt
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      - default
+```
+
+Y actualiza la configuración de la API:
+```yaml
+environment:
+  IOT_MONITOR_MQTT_BROKER_HOST: mqtt
+```
+
+## 🗄️ Migraciones de Base de Datos
+
+El proyecto usa Alembic para gestionar migraciones de base de datos.
+
+### Comandos Útiles
+
+```bash
+# Crear una nueva migración (después de modificar modelos)
+uv run alembic revision --autogenerate -m "Descripción del cambio"
+
+# Aplicar migraciones pendientes
+uv run alembic upgrade head
+
+# Revertir última migración
+uv run alembic downgrade -1
+
+# Ver historial de migraciones
+uv run alembic history
+
+# Ver estado actual
+uv run alembic current
+```
+
+### Modelos de Base de Datos
+
+El proyecto incluye los siguientes modelos (entidades):
+
+- **Role** - Roles de usuario
+- **User** - Usuarios del sistema
+- **Business** - Empresas/clientes
+- **Branch** - Sucursales
+- **Machine** - Máquinas
+- **DeviceType** - Tipos de dispositivos
+- **Device** - Dispositivos IoT
+- **SensorType** - Tipos de sensores
+- **Sensor** - Sensores
+- **TimeData** - Datos temporales de sensores
+- **Report** - Reportes generados
+
+Ver `backend/specs/00_contracts.md` para detalles completos de cada entidad.
+
+## 📡 MQTT
+
+El sistema incluye un cliente MQTT que escucha mensajes de dispositivos IoT y los almacena automáticamente en la base de datos.
+
+### Configuración MQTT
+
+Variables de entorno disponibles:
+
+```env
+IOT_MONITOR_MQTT_BROKER_HOST=localhost        # Host del broker MQTT
+IOT_MONITOR_MQTT_BROKER_PORT=1883            # Puerto del broker
+IOT_MONITOR_MQTT_USERNAME=usuario            # Usuario (opcional)
+IOT_MONITOR_MQTT_PASSWORD=contraseña         # Contraseña (opcional)
+IOT_MONITOR_MQTT_TOPIC=iot/data              # Tópico al que suscribirse
+IOT_MONITOR_MQTT_CLIENT_ID=iot_monitor_client # ID del cliente
+IOT_MONITOR_MQTT_ENABLED=true                # Habilitar/deshabilitar MQTT
+```
+
+### Formato de Mensaje MQTT
+
+Los dispositivos IoT deben enviar mensajes JSON al tópico configurado (`iot/data` por defecto) con el siguiente formato:
+
 ```json
 {
-  "id": "123",
-  "timestamp": "2021-01-01T00:00:00Z",
-  "value": 100,
+  "sensor_id": "123e4567-e89b-12d3-a456-426614174000",
+  "device_id": "123e4567-e89b-12d3-a456-426614174001",
+  "value": 25.5,
   "unit": "°C",
   "type": "double",
-  "sensor_id": "123",
-  "device_id": "123",
+  "timestamp": "2024-01-01T12:00:00Z"
 }
 ```
-- Sensor
-```json
-{
-  "id": "123",
-  "name": "temperature",
-  "type_id": "123", // Relacional a SensorType
-  "device_id": "123",
-  "machine_id": "123",
-}
-```
-- SensorType
-```json
-{
-  "id": "123",
-  "name": "Temperature",
-  "code": "TEMP",
+
+### Ejemplo de Publicación MQTT
+
+```bash
+# Usando mosquitto_pub
+mosquitto_pub -h localhost -p 1883 -t iot/data -m '{
+  "sensor_id": "123e4567-e89b-12d3-a456-426614174000",
+  "device_id": "123e4567-e89b-12d3-a456-426614174001",
+  "value": 25.5,
+  "unit": "°C",
   "type": "double",
-}
+  "timestamp": "2024-01-01T12:00:00Z"
+}'
 ```
-- Device
-```json
-{
-  "id": "123",
-  "name": "Device 1",
-  "code": "DEV1",
-  "description": "Device 1",
-  "type_id": "123", // Relacional a DeviceType
-  "machine_id": "123",
-  "location": "123 Main St, Anytown, USA",
-  "created_at": "2021-01-01T00:00:00Z",
-  "updated_at": "2021-01-01T00:00:00Z",
-  "deleted_at": "2021-01-01T00:00:00Z",
-}
+
+### Estado del Cliente MQTT
+
+Puedes verificar el estado del cliente MQTT mediante el endpoint `/health`:
+
+```bash
+curl http://localhost:8000/health
 ```
-- DeviceType
+
+Respuesta:
 ```json
 {
-  "id": "123",
-  "name": "Device Type 1",
-  "code": "Smartphone",
-}
-```
-- Machine
-```json
-{
-  "id": "123",
-  "name": "Machine 1",
-  "code": "MACHINE1",
-  "description": "Machine 1",
-  "business_id": "123", // Relacional a Business
-  "branch_id": "123", // Relacional a Branch
-  "year": 2021,
-  "created_at": "2021-01-01T00:00:00Z",
-  "updated_at": "2021-01-01T00:00:00Z",
-  "deleted_at": "2021-01-01T00:00:00Z",
-}
-```
-- User
-```json
-{
-  "id": "123",
-  "first_name": "User 1",
-  "last_name": "User 1",
-  "profile_picture": "https://example.com/profile.jpg",
-  "email": "user1@example.com",
-  "password": "password",
-  "role_id": "123", // Relacional a Role
-  "business_id": "123", // Relacional a Business
-  "branch_id": "123", // Relacional a Branch
-  "created_at": "2021-01-01T00:00:00Z",
-  "updated_at": "2021-01-01T00:00:00Z",
-  "deleted_at": "2021-01-01T00:00:00Z",
-}
-```
-- Role
-```json
-{
-  "id": "123",
-  "name": "Role 1",
-  "description": "Role 1",
-}
-```
-- Report
-```json
-{
-  "id": "123",
-  "name": "Report 1",
-  "description": "Report 1",
-  "business_id": "123", // Relacional a Business
-  "branch_id": "123", // Relacional a Branch
-  "machine_id": "123", // Relacional a Machine
-  "device_id": "123", // Relacional a Device
-  "time_data_ids": ["123", "124", "125"], // Relacional a TimeData
-  "created_at": "2021-01-01T00:00:00Z",
-  "updated_at": "2021-01-01T00:00:00Z",
-  "deleted_at": "2021-01-01T00:00:00Z",
-}
-- Business
-```json
-{
-  "id": "123",
-  "name": "Business 1",
-  "description": "Business 1",
-  "picture_url": "https://example.com/business.jpg",
-  "created_at": "2021-01-01T00:00:00Z",
-  "updated_at": "2021-01-01T00:00:00Z",
-  "deleted_at": "2021-01-01T00:00:00Z",
-}
-```
-- Branch
-```json
-{
-  "id": "123",
-  "name": "Branch 1",
-  "description": "Branch 1",
-  "business_id": "123", // Relacional a Business
-  "representative_id": "123", // Relacional a User
-  "address": "123 Main St, Anytown, USA",
-  "created_at": "2021-01-01T00:00:00Z",
-  "updated_at": "2021-01-01T00:00:00Z",
-  "deleted_at": "2021-01-01T00:00:00Z",
+  "status": "ok",
+  "service": "iotMonitor",
+  "version": "0.1.0",
+  "mqtt": {
+    "enabled": true,
+    "status": "connected",
+    "broker": "localhost:1883",
+    "topic": "iot/data"
+  }
 }
 ```
 
+## 🔌 API REST
 
-### Endpoints
+### Base URL
 
-#### IoT -> Gateway
-- POST /v1/iot/data
-
-
-#### Gateway -> Frontend
-##### Business
-- GET /v1/dashboard/businesses -> List all businesses
-- GET /v1/dashboard/businesses/{business_id} -> Read a business by id
-```json
-{
-  "id": "123",
-  "name": "Business 1",
-  "description": "Business 1",
-  "picture_url": "https://example.com/business.jpg",
-  "created_at": "2021-01-01T00:00:00Z",
-  "updated_at": "2021-01-01T00:00:00Z",
-  "deleted_at": "2021-01-01T00:00:00Z",
-  "branches": [
-    {
-      "id": "123",
-      "name": "Branch 1",
-      "description": "Branch 1",
-      "business_id": "123",
-      "representative_id": "123",
-      "address": "123 Main St, Anytown, USA",
-    }
-  ]
-}
 ```
-- POST /v1/dashboard/businesses/ -> Create a business
-- PUT /v1/dashboard/businesses/{business_id} -> Update a business by id
-- DELETE /v1/dashboard/businesses/{business_id} -> Delete a business by id
-##### Branches
-- GET /v1/dashboard/branches/ -> List all branches
-- GET /v1/dashboard/branches/business/{business_id} -> List all branches of a business
-- GET /v1/dashboard/branches/{branch_id} -> Read a branch by id
+http://localhost:8000/v1
+```
 
-- POST /v1/dashboard/branches/ -> Create a branch
-- PUT /v1/dashboard/branches/{business_id}/{branch_id} -> Update a branch by id
-- DELETE /v1/dashboard/branches/{business_id}/{branch_id} -> Delete a branch by id
-##### Machines
-- GET /v1/dashboard/machines/ -> List all machines
-- GET /v1/dashboard/machines/branch/{branch_id} -> List all machines of a branch
-- GET /v1/dashboard/machines/{machine_id} -> Read a machine by id
-- POST /v1/dashboard/machines/ -> Create a machine
-- PUT /v1/dashboard/machines/{machine_id} -> Update a machine by id
-- DELETE /v1/dashboard/machines/{machine_id} -> Delete a machine by id
-##### Devices
-- GET /v1/dashboard/devices/ -> List all devices
-- GET /v1/dashboard/devices/machine/{machine_id} -> List all devices of a machine
-- GET /v1/dashboard/devices/{device_id} -> Read a device by id
-- POST /v1/dashboard/devices/ -> Create a device
-- PUT /v1/dashboard/devices/{device_id} -> Update a device by id
-- DELETE /v1/dashboard/devices/{device_id} -> Delete a device by id
-##### Sensors
-- GET /v1/dashboard/sensors/ -> List all sensors
-- GET /v1/dashboard/sensors/device/{device_id} -> List all sensors of a device
-- GET /v1/dashboard/sensors/{sensor_id} -> Read a sensor by id
-- POST /v1/dashboard/sensors/ -> Create a sensor
-- PUT /v1/dashboard/sensors/{sensor_id} -> Update a sensor by id
-- DELETE /v1/dashboard/sensors/{sensor_id} -> Delete a sensor by id
-##### TimeData
-- GET /v1/dashboard/time-data/ -> List all time data
-- GET /v1/dashboard/time-data/sensor/{sensor_id} -> List all time data of a sensor
-- GET /v1/dashboard/time-data/{time_data_id} -> Read a time data by id
-- POST /v1/dashboard/time-data/ -> Create a time data
-- PUT /v1/dashboard/time-data/{time_data_id} -> Update a time data by id
-- DELETE /v1/dashboard/time-data/{time_data_id} -> Delete a time data by id
-##### Reports
-- GET /v1/dashboard/reports -> List all reports
-- GET /v1/dashboard/reports/branch/{branch_id} -> List all reports of a branch
-- GET /v1/dashboard/reports/machine/{machine_id} -> List all reports of a machine
-- GET /v1/dashboard/reports/{report_id} -> Read a report by id
-- POST /v1/dashboard/reports/ -> Create a report
-- PUT /v1/dashboard/reports/{report_id} -> Update a report by id
-- DELETE /v1/dashboard/reports/{report_id} -> Delete a report by id
-##### Users
-- GET /v1/dashboard/users -> List all users
-- GET /v1/dashboard/users/{user_id} -> Read a user by id
-- POST /v1/dashboard/users/ -> Create a user
-- PUT /v1/dashboard/users/{user_id} -> Update a user by id
-- DELETE /v1/dashboard/users/{user_id} -> Delete a user by id
+### Autenticación
+
+Actualmente la API no requiere autenticación. Se recomienda implementar autenticación JWT en producción.
+
+### Formato de Respuesta
+
+Todas las respuestas JSON siguen el formato estándar de FastAPI.
+
+## 📋 Endpoints Disponibles
+
+### Health Check
+
+- `GET /health` - Estado del servicio y cliente MQTT
+
+### Roles
+
+- `GET /v1/roles/` - Listar roles
+- `POST /v1/roles/` - Crear rol
+- `GET /v1/roles/{role_id}` - Obtener rol por ID
+- `PUT /v1/roles/{role_id}` - Actualizar rol
+- `DELETE /v1/roles/{role_id}` - Eliminar rol
+
+### Usuarios
+
+- `GET /v1/users/` - Listar usuarios
+- `POST /v1/users/` - Crear usuario
+- `GET /v1/users/{user_id}` - Obtener usuario por ID
+- `PUT /v1/users/{user_id}` - Actualizar usuario
+- `DELETE /v1/users/{user_id}` - Eliminar usuario (soft delete)
+
+### IoT Data
+
+- `POST /v1/iot/data` - Enviar datos IoT (alternativa a MQTT)
+
+Ver `backend/specs/00_contracts.md` para la especificación completa de endpoints del dashboard.
+
+## ⚛️ Integración con Frontend React
+
+### Configuración Base
+
+1. **Crear archivo de configuración** en tu proyecto React (`src/config/api.ts`):
+
+```typescript
+export const API_CONFIG = {
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+  apiVersion: 'v1',
+  timeout: 10000,
+};
+
+export const API_ENDPOINTS = {
+  health: '/health',
+  roles: '/v1/roles',
+  users: '/v1/users',
+  iotData: '/v1/iot/data',
+  // Agregar más endpoints según necesidad
+};
+```
+
+2. **Crear servicio de API** (`src/services/api.ts`):
+
+```typescript
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { API_CONFIG, API_ENDPOINTS } from '../config/api';
+
+class ApiService {
+  private client: AxiosInstance;
+
+  constructor() {
+    this.client = axios.create({
+      baseURL: API_CONFIG.baseURL,
+      timeout: API_CONFIG.timeout,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    // Interceptor para agregar token de autenticación (cuando se implemente)
+    this.client.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    // Interceptor para manejar errores
+    this.client.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 401) {
+          // Redirigir a login
+          window.location.href = '/login';
+        }
+        return Promise.reject(error);
+      }
+    );
+  }
+
+  // Health check
+  async getHealth() {
+    const response = await this.client.get(API_ENDPOINTS.health);
+    return response.data;
+  }
+
+  // Roles
+  async getRoles() {
+    const response = await this.client.get(API_ENDPOINTS.roles);
+    return response.data;
+  }
+
+  async createRole(data: any) {
+    const response = await this.client.post(API_ENDPOINTS.roles, data);
+    return response.data;
+  }
+
+  // Usuarios
+  async getUsers() {
+    const response = await this.client.get(API_ENDPOINTS.users);
+    return response.data;
+  }
+
+  async createUser(data: any) {
+    const response = await this.client.post(API_ENDPOINTS.users, data);
+    return response.data;
+  }
+
+  // IoT Data
+  async sendIoTData(data: any) {
+    const response = await this.client.post(API_ENDPOINTS.iotData, data);
+    return response.data;
+  }
+}
+
+export const apiService = new ApiService();
+```
+
+3. **Usar en componentes React**:
+
+```typescript
+import React, { useEffect, useState } from 'react';
+import { apiService } from '../services/api';
+
+const UsersList: React.FC = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const data = await apiService.getUsers();
+        setUsers(data);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <div>
+      <h1>Users</h1>
+      <ul>
+        {users.map((user: any) => (
+          <li key={user.id}>{user.email}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default UsersList;
+```
+
+### Variables de Entorno en React
+
+Crear archivo `.env` en la raíz del proyecto React:
+
+```env
+REACT_APP_API_URL=http://localhost:8000
+```
+
+### CORS
+
+Si tu frontend React corre en un puerto diferente (ej: `http://localhost:3000`), necesitarás configurar CORS en FastAPI.
+
+Agregar en `app/main.py`:
+
+```python
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # URL de tu frontend React
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+### Ejemplo Completo con React Query
+
+```typescript
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiService } from '../services/api';
+
+// Hook para obtener usuarios
+export const useUsers = () => {
+  return useQuery({
+    queryKey: ['users'],
+    queryFn: () => apiService.getUsers(),
+  });
+};
+
+// Hook para crear usuario
+export const useCreateUser = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (data: any) => apiService.createUser(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+  });
+};
+```
+
+## 🧪 Testing
+
+```bash
+# Ejecutar tests
+uv run pytest
+
+# Con cobertura
+uv run pytest --cov=app tests/
+```
+
+## 📚 Documentación Adicional
+
+- **Contratos y Especificaciones**: `backend/specs/00_contracts.md`
+- **Guía de Setup**: `backend/specs/01_setup.md`
+- **Documentación FastAPI**: `http://localhost:8000/docs` (cuando el servidor está corriendo)
+
+## 🤝 Contribución
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## 📝 Licencia
+
+[Especificar licencia]
+
+## 👥 Autores
+
+- Equipo iotMonitor
+
+---
+
+**Nota**: Este proyecto está en desarrollo activo. Algunas funcionalidades pueden estar en construcción.
+
