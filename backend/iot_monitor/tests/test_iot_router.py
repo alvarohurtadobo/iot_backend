@@ -314,3 +314,156 @@ class TestIoTDataIngestion:
         data = response.json()
         assert data["value"] == value
 
+
+class TestIoTManyDataIngestion:
+    """Tests for the IoT many data ingestion endpoint."""
+
+    def test_post_many_iot_data_success(
+        self, client: TestClient, mock_db_session: MagicMock
+    ) -> None:
+        """Test: POST /v1/iot/many with valid data returns 201."""
+        # Arrange
+        record_id_1 = uuid4()
+        record_id_2 = uuid4()
+        sensor_id_1 = uuid4()
+        sensor_id_2 = uuid4()
+        device_id_1 = uuid4()
+        device_id_2 = uuid4()
+        timestamp = datetime.utcnow()
+
+        # Capture the TimeData objects passed to add_all
+        captured_time_data_list = []
+        
+        def capture_add_all(objs):
+            captured_time_data_list.extend(objs)
+        
+        mock_db_session.add_all.side_effect = capture_add_all
+        mock_db_session.commit.return_value = None
+        mock_db_session.refresh.return_value = None
+
+        payload = [
+            {
+                "id": str(record_id_1),
+                "sensor_id": str(sensor_id_1),
+                "device_id": str(device_id_1),
+                "value": 25.5,
+                "unit": "°C",
+                "type": "double",
+                "timestamp": timestamp.isoformat(),
+            },
+            {
+                "id": str(record_id_2),
+                "sensor_id": str(sensor_id_2),
+                "device_id": str(device_id_2),
+                "value": 30.0,
+                "unit": "kPa",
+                "type": "double",
+                "timestamp": timestamp.isoformat(),
+            },
+        ]
+
+        # Act
+        response = client.post("/v1/iot/many", json=payload)
+
+        # Assert
+        assert response.status_code == status.HTTP_201_CREATED
+        mock_db_session.add_all.assert_called_once()
+        mock_db_session.commit.assert_called_once()
+        assert len(captured_time_data_list) == 2
+        
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) == 2
+        assert data[0]["sensor_id"] == str(sensor_id_1)
+        assert data[0]["device_id"] == str(device_id_1)
+        assert data[0]["value"] == 25.5
+        assert data[0]["unit"] == "°C"
+        assert data[1]["sensor_id"] == str(sensor_id_2)
+        assert data[1]["device_id"] == str(device_id_2)
+        assert data[1]["value"] == 30.0
+        assert data[1]["unit"] == "kPa"
+
+    def test_post_many_iot_data_empty_array(
+        self, client: TestClient, mock_db_session: MagicMock
+    ) -> None:
+        """Test: POST /v1/iot/many with empty array returns 201 with empty list."""
+        # Arrange
+        payload = []
+
+        mock_db_session.add_all.return_value = None
+        mock_db_session.commit.return_value = None
+
+        # Act
+        response = client.post("/v1/iot/many", json=payload)
+
+        # Assert
+        assert response.status_code == status.HTTP_201_CREATED
+        mock_db_session.add_all.assert_called_once()
+        mock_db_session.commit.assert_called_once()
+        
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) == 0
+
+    def test_post_many_iot_data_invalid_item(
+        self, client: TestClient, mock_db_session: MagicMock
+    ) -> None:
+        """Test: POST /v1/iot/many with invalid item returns 422."""
+        # Arrange
+        payload = [
+            {
+                "id": str(uuid4()),
+                "sensor_id": str(uuid4()),
+                "device_id": str(uuid4()),
+                "value": 25.5,
+                "type": "double",
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+            {
+                "id": str(uuid4()),
+                "sensor_id": "invalid-uuid",
+                "device_id": str(uuid4()),
+                "value": 30.0,
+                "type": "double",
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        ]
+
+        # Act
+        response = client.post("/v1/iot/many", json=payload)
+
+        # Assert
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert not mock_db_session.add_all.called
+
+    def test_post_many_iot_data_missing_required_field(
+        self, client: TestClient, mock_db_session: MagicMock
+    ) -> None:
+        """Test: POST /v1/iot/many with missing required field returns 422."""
+        # Arrange
+        payload = [
+            {
+                "id": str(uuid4()),
+                "sensor_id": str(uuid4()),
+                "device_id": str(uuid4()),
+                "value": 25.5,
+                "type": "double",
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+            {
+                "id": str(uuid4()),
+                "sensor_id": str(uuid4()),
+                # Missing device_id
+                "value": 30.0,
+                "type": "double",
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        ]
+
+        # Act
+        response = client.post("/v1/iot/many", json=payload)
+
+        # Assert
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert not mock_db_session.add_all.called
+
