@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, status
+from sqlalchemy.orm import Session
 
+from app.db.base import get_db
+from app.db.models.time_data import TimeData
 from app.iot_data.schemas import IoTDataIn, IoTDataRecord
-from app.iot_data.service import IoTDataService, get_iot_data_service
 
 router = APIRouter(prefix="/iot", tags=["iot"])
 
@@ -13,8 +15,28 @@ router = APIRouter(prefix="/iot", tags=["iot"])
 @router.post("/data", response_model=IoTDataRecord, status_code=status.HTTP_201_CREATED)
 def ingest_iot_data(
     payload: IoTDataIn,
-    service: IoTDataService = Depends(get_iot_data_service),
+    db: Session = Depends(get_db),
 ) -> IoTDataRecord:
     """Receive and store a reading from an IoT device."""
-
-    return service.store(payload)
+    time_data = TimeData(
+        id=payload.id,
+        timestamp=payload.timestamp,
+        value=payload.value,
+        unit=payload.unit,
+        type=payload.type,
+        sensor_id=payload.sensor_id,
+        device_id=payload.device_id,
+    )
+    db.add(time_data)
+    db.commit()
+    db.refresh(time_data)
+    
+    return IoTDataRecord(
+        id=time_data.id,
+        timestamp=time_data.timestamp,
+        value=time_data.value,
+        unit=time_data.unit,
+        type=time_data.type,
+        sensor_id=time_data.sensor_id,
+        device_id=time_data.device_id,
+    )

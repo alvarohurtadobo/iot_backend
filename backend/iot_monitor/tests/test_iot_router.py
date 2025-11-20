@@ -9,6 +9,7 @@ from uuid import UUID, uuid4
 from fastapi import status
 from fastapi.testclient import TestClient
 
+from app.db.models.time_data import TimeData
 from app.iot_data.schemas import IoTDataRecord
 
 
@@ -16,39 +17,68 @@ class TestIoTDataIngestion:
     """Tests for the IoT data ingestion endpoint."""
 
     def test_post_iot_data_success(
-        self, client: TestClient, mock_iot_service: MagicMock
+        self, client: TestClient, mock_db_session: MagicMock
     ) -> None:
         """Test: POST /v1/iot/data with valid data returns 201."""
         # Arrange
+        record_id = uuid4()
         sensor_id = uuid4()
+        device_id = uuid4()
         value = 25.5
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.utcnow()
 
-        expected_record = IoTDataRecord(
-            id=uuid4(),
+        mock_time_data = TimeData(
+            id=record_id,
             sensor_id=sensor_id,
+            device_id=device_id,
             value=value,
-            timestamp=datetime.fromisoformat(timestamp.replace("Z", "+00:00")),
+            unit="°C",
+            type="double",
+            timestamp=timestamp,
         )
-
-        mock_iot_service.store.return_value = expected_record
+        
+        mock_db_session.add.return_value = None
+        mock_db_session.commit.return_value = None
+        mock_db_session.refresh.return_value = None
+        mock_db_session.__enter__ = lambda x: x
+        mock_db_session.__exit__ = lambda x, y, z, w: None
 
         payload = {
+            "id": str(record_id),
             "sensor_id": str(sensor_id),
+            "device_id": str(device_id),
             "value": value,
-            "timestamp": timestamp,
+            "unit": "°C",
+            "type": "double",
+            "timestamp": timestamp.isoformat(),
         }
+
+        # Mock the refresh to set the object
+        def mock_refresh(obj):
+            obj.id = record_id
+            obj.sensor_id = sensor_id
+            obj.device_id = device_id
+            obj.value = value
+            obj.unit = "°C"
+            obj.type = "double"
+            obj.timestamp = timestamp
+
+        mock_db_session.refresh.side_effect = mock_refresh
 
         # Act
         response = client.post("/v1/iot/data", json=payload)
 
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
-        mock_iot_service.store.assert_called_once()
+        mock_db_session.add.assert_called_once()
+        mock_db_session.commit.assert_called_once()
         
         data = response.json()
         assert data["sensor_id"] == str(sensor_id)
+        assert data["device_id"] == str(device_id)
         assert data["value"] == value
+        assert data["unit"] == "°C"
+        assert data["type"] == "double"
         assert "id" in data
         assert UUID(data["id"]) is not None
 
