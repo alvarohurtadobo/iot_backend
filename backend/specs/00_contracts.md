@@ -180,7 +180,17 @@ Backend for centralization of data from multiple IoT devices.
 
 #### IoT -> Gateway
 - POST /v1/iot/data
-
+```json
+{
+  "id": "123",
+  "timestamp": "2021-01-01T00:00:00Z",
+  "value": 100,
+  "unit": "°C",
+  "type": "double",
+  "sensor_id": "123",
+  "device_id": "123",
+}
+```
 
 #### Gateway -> Frontend
 ##### Business
