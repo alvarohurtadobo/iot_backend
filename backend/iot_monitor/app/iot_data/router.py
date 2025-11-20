@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import List
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
@@ -40,3 +42,43 @@ def ingest_iot_data(
         sensor_id=time_data.sensor_id,
         device_id=time_data.device_id,
     )
+
+
+@router.post("/many", response_model=List[IoTDataRecord], status_code=status.HTTP_201_CREATED)
+def ingest_many_iot_data(
+    payload: List[IoTDataIn],
+    db: Session = Depends(get_db),
+) -> List[IoTDataRecord]:
+    """Receive and store multiple readings from IoT devices."""
+    time_data_list = [
+        TimeData(
+            id=item.id,
+            timestamp=item.timestamp,
+            value=item.value,
+            unit=item.unit,
+            type=item.type,
+            sensor_id=item.sensor_id,
+            device_id=item.device_id,
+        )
+        for item in payload
+    ]
+    
+    db.add_all(time_data_list)
+    db.commit()
+    
+    # Refresh all objects to get any database-generated values
+    for time_data in time_data_list:
+        db.refresh(time_data)
+    
+    return [
+        IoTDataRecord(
+            id=time_data.id,
+            timestamp=time_data.timestamp,
+            value=time_data.value,
+            unit=time_data.unit,
+            type=time_data.type,
+            sensor_id=time_data.sensor_id,
+            device_id=time_data.device_id,
+        )
+        for time_data in time_data_list
+    ]
