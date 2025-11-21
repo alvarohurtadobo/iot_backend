@@ -4,7 +4,7 @@ Backend for centralization of data from multiple IoT devices.
 
 ## Stacks
 
-### Frontend documentation
+### Frontend
 
 - Typescript
 - CSS Modules
