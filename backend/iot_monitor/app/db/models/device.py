@@ -1,4 +1,4 @@
-"""Modelo Device."""
+"""Device model."""
 
 from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Float
 from sqlalchemy.dialects.postgresql import UUID
@@ -10,7 +10,7 @@ from app.db.base import Base
 
 
 class Device(Base):
-    """Modelo de Device."""
+    """Device model."""
 
     __tablename__ = "devices"
 
@@ -26,7 +26,7 @@ class Device(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
-    # Relaciones
+    # Relationships
     device_type = relationship("DeviceType", back_populates="devices")
     machine = relationship("Machine", back_populates="devices")
     sensors = relationship("Sensor", back_populates="device", cascade="all, delete-orphan")
