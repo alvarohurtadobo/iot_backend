@@ -1,10 +1,10 @@
-"""Configuración central de la aplicación iotMonitor."""
+"""Central configuration for the iotMonitor application."""
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Valores configurables de la API."""
+    """Configurable values for the API."""
 
     project_name: str = "iotMonitor"
     version: str = "0.1.0"
@@ -12,7 +12,7 @@ class Settings(BaseSettings):
         "postgresql+psycopg2://postgres:postgres@localhost:5432/iot_monitor"
     )
     
-    # Configuración MQTT
+    # MQTT configuration
     mqtt_broker_host: str = "localhost"
     mqtt_broker_port: int = 1883
     mqtt_username: str | None = None

@@ -1,4 +1,4 @@
-"""Schemas Pydantic para mensajes MQTT de TimeData."""
+"""Pydantic schemas for MQTT TimeData messages."""
 
 from datetime import datetime
 from uuid import UUID
@@ -7,20 +7,20 @@ from pydantic import BaseModel, Field
 
 
 class TimeDataMQTTMessage(BaseModel):
-    """Schema para mensajes MQTT de TimeData."""
+    """Schema for MQTT TimeData messages."""
 
-    sensor_id: UUID = Field(..., description="ID del sensor que envía los datos")
-    device_id: UUID = Field(..., description="ID del dispositivo asociado")
-    value: float = Field(..., description="Valor numérico reportado por el sensor")
-    unit: str | None = Field(None, description="Unidad de medida (ej: °C, kPa)")
-    type: str = Field(..., description="Tipo de dato: 'double', 'int', etc.")
+    sensor_id: UUID = Field(..., description="ID of the sensor sending the data")
+    device_id: UUID = Field(..., description="ID of the associated device")
+    value: float = Field(..., description="Numeric value reported by the sensor")
+    unit: str | None = Field(None, description="Unit of measurement (e.g., °C, kPa)")
+    type: str = Field(..., description="Data type: 'double', 'int', etc.")
     timestamp: datetime = Field(
         default_factory=datetime.utcnow,
-        description="Timestamp cuando se generó la lectura",
+        description="Timestamp when the reading was generated",
     )
 
     class Config:
-        """Configuración del modelo."""
+        """Model configuration."""
 
         json_schema_extra = {
             "example": {

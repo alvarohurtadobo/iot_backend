@@ -1,4 +1,4 @@
-"""Modelos SQLAlchemy para la base de datos."""
+"""SQLAlchemy models for the database."""
 
 from app.db.models.role import Role
 from app.db.models.user import User

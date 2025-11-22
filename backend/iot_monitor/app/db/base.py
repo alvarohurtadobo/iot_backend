@@ -1,4 +1,4 @@
-"""Configuración de la base de datos SQLAlchemy."""
+"""SQLAlchemy database configuration."""
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -6,18 +6,18 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 
-# Crear engine de SQLAlchemy
+# Create SQLAlchemy engine
 engine = create_engine(settings.database_url, echo=True)
 
-# Crear SessionLocal para sesiones de DB
+# Create SessionLocal for database sessions
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Crear Base declarativa para futuros modelos
+# Create declarative Base for future models
 Base = declarative_base()
 
 
 def get_db():
-    """Función para dependency injection de sesiones de base de datos."""
+    """Function for dependency injection of database sessions."""
     db = SessionLocal()
     try:
         yield db

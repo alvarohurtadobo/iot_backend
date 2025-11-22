@@ -1,4 +1,4 @@
-"""Configuración del API v1."""
+"""API v1 configuration."""
 
 from fastapi import APIRouter
 
