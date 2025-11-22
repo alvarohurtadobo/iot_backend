@@ -1,4 +1,4 @@
-"""Modelo Report."""
+"""Report model."""
 
 from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Table
 from sqlalchemy.dialects.postgresql import UUID
@@ -8,7 +8,7 @@ import uuid
 
 from app.db.base import Base
 
-# Tabla asociativa para la relación muchos-a-muchos entre Report y TimeData
+# Associative table for many-to-many relationship between Report and TimeData
 report_time_data = Table(
     "report_time_data",
     Base.metadata,
@@ -18,7 +18,7 @@ report_time_data = Table(
 
 
 class Report(Base):
-    """Modelo de Report."""
+    """Report model."""
 
     __tablename__ = "reports"
 
@@ -33,7 +33,7 @@ class Report(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
-    # Relaciones
+    # Relationships
     business = relationship("Business", back_populates="reports")
     branch = relationship("Branch", back_populates="reports")
     machine = relationship("Machine", back_populates="reports")

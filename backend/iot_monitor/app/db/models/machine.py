@@ -1,4 +1,4 @@
-"""Modelo Machine."""
+"""Machine model."""
 
 from sqlalchemy import Column, String, Text, Integer, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
@@ -10,7 +10,7 @@ from app.db.base import Base
 
 
 class Machine(Base):
-    """Modelo de Machine."""
+    """Machine model."""
 
     __tablename__ = "machines"
 
@@ -25,7 +25,7 @@ class Machine(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
-    # Relaciones
+    # Relationships
     business = relationship("Business", back_populates="machines")
     branch = relationship("Branch", back_populates="machines")
     devices = relationship("Device", back_populates="machine", cascade="all, delete-orphan")

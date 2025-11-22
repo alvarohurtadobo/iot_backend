@@ -1,4 +1,4 @@
-"""Modelo DeviceType."""
+"""DeviceType model."""
 
 from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import UUID
@@ -9,7 +9,7 @@ from app.db.base import Base
 
 
 class DeviceType(Base):
-    """Modelo de DeviceType."""
+    """DeviceType model."""
 
     __tablename__ = "device_types"
 
@@ -17,7 +17,7 @@ class DeviceType(Base):
     name = Column(String(255), nullable=False)
     code = Column(String(100), nullable=False, unique=True, index=True)
 
-    # Relaciones
+    # Relationships
     devices = relationship("Device", back_populates="device_type")
 
     def __repr__(self):

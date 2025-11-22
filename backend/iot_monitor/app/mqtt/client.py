@@ -1,4 +1,4 @@
-"""Cliente MQTT para recibir y procesar mensajes de TimeData usando paho-mqtt."""
+"""MQTT client for receiving and processing TimeData messages using paho-mqtt."""
 
 import asyncio
 import json
@@ -18,93 +18,93 @@ logger = logging.getLogger(__name__)
 
 
 class MQTTClient:
-    """Cliente MQTT para recibir datos de TimeData usando paho-mqtt."""
+    """MQTT client for receiving TimeData using paho-mqtt."""
 
     def __init__(self):
-        """Inicializa el cliente MQTT."""
+        """Initialize the MQTT client."""
         self.client: mqtt.Client | None = None
         self._running = False
         self._thread: threading.Thread | None = None
         self._message_queue: Queue = Queue()
 
     def _on_connect(self, client: mqtt.Client, userdata: dict, flags: dict, rc: int) -> None:
-        """Callback cuando el cliente se conecta al broker.
+        """Callback when the client connects to the broker.
 
         Args:
-            client: Cliente MQTT
-            userdata: Datos de usuario pasados al cliente
-            flags: Flags de respuesta del broker
-            rc: Código de resultado de la conexión
+            client: MQTT client
+            userdata: User data passed to the client
+            flags: Response flags from the broker
+            rc: Connection result code
         """
         if rc == 0:
             logger.info(
-                f"Conectado al broker MQTT en {settings.mqtt_broker_host}:{settings.mqtt_broker_port}"
+                f"Connected to MQTT broker at {settings.mqtt_broker_host}:{settings.mqtt_broker_port}"
             )
-            # Suscribirse al tópico
+            # Subscribe to topic
             client.subscribe(settings.mqtt_topic)
-            logger.info(f"Suscrito al tópico: {settings.mqtt_topic}")
+            logger.info(f"Subscribed to topic: {settings.mqtt_topic}")
         else:
-            logger.error(f"Error al conectar al broker MQTT. Código: {rc}")
+            logger.error(f"Error connecting to MQTT broker. Code: {rc}")
 
     def _on_message(self, client: mqtt.Client, userdata: dict, msg: mqtt.MQTTMessage) -> None:
-        """Callback cuando se recibe un mensaje.
+        """Callback when a message is received.
 
         Args:
-            client: Cliente MQTT
-            userdata: Datos de usuario pasados al cliente
-            msg: Mensaje recibido
+            client: MQTT client
+            userdata: User data passed to the client
+            msg: Received message
         """
         try:
             payload = msg.payload.decode("utf-8")
             topic = msg.topic
-            logger.debug(f"Mensaje recibido en {topic}: {payload}")
-            # Agregar mensaje a la cola para procesamiento
+            logger.debug(f"Message received on {topic}: {payload}")
+            # Add message to queue for processing
             self._message_queue.put(payload)
         except Exception as e:
-            logger.error(f"Error al procesar mensaje MQTT: {e}")
+            logger.error(f"Error processing MQTT message: {e}")
 
     def _on_disconnect(self, client: mqtt.Client, userdata: dict, rc: int) -> None:
-        """Callback cuando el cliente se desconecta del broker.
+        """Callback when the client disconnects from the broker.
 
         Args:
-            client: Cliente MQTT
-            userdata: Datos de usuario pasados al cliente
-            rc: Código de resultado de la desconexión
+            client: MQTT client
+            userdata: User data passed to the client
+            rc: Disconnection result code
         """
         if rc != 0:
-            logger.warning(f"Desconexión inesperada del broker MQTT. Código: {rc}")
+            logger.warning(f"Unexpected disconnection from MQTT broker. Code: {rc}")
         else:
-            logger.info("Desconectado del broker MQTT")
+            logger.info("Disconnected from MQTT broker")
 
     async def _process_message(self, message: str) -> None:
-        """Procesa un mensaje MQTT y lo almacena en la base de datos.
+        """Process an MQTT message and store it in the database.
 
         Args:
-            message: Mensaje JSON recibido del broker MQTT
+            message: JSON message received from MQTT broker
         """
         try:
-            # Parsear JSON
+            # Parse JSON
             data = json.loads(message)
 
-            # Validar con Pydantic
+            # Validate with Pydantic
             mqtt_message = TimeDataMQTTMessage(**data)
 
-            # Almacenar en base de datos (ejecutar en thread pool para no bloquear)
+            # Store in database (execute in thread pool to avoid blocking)
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, self._store_in_db, mqtt_message)
 
         except json.JSONDecodeError as e:
-            logger.error(f"Error al parsear JSON del mensaje MQTT: {e}")
+            logger.error(f"Error parsing JSON from MQTT message: {e}")
         except ValidationError as e:
-            logger.error(f"Error de validación del mensaje MQTT: {e}")
+            logger.error(f"MQTT message validation error: {e}")
         except Exception as e:
-            logger.error(f"Error al procesar mensaje MQTT: {e}")
+            logger.error(f"Error processing MQTT message: {e}")
 
     def _store_in_db(self, mqtt_message: TimeDataMQTTMessage) -> None:
-        """Almacena el mensaje en la base de datos (ejecutado en thread pool).
+        """Store the message in the database (executed in thread pool).
 
         Args:
-            mqtt_message: Mensaje validado de TimeData
+            mqtt_message: Validated TimeData message
         """
         db = SessionLocal()
         try:
@@ -113,53 +113,53 @@ class MQTTClient:
             db.close()
 
     async def _message_processor(self) -> None:
-        """Procesa mensajes de la cola de forma asíncrona."""
+        """Process messages from the queue asynchronously."""
         while self._running:
             try:
-                # Intentar obtener mensaje de la cola (no bloqueante)
+                # Try to get message from queue (non-blocking)
                 try:
                     message = self._message_queue.get_nowait()
                     await self._process_message(message)
                 except Empty:
-                    # Si no hay mensajes, esperar un poco antes de intentar de nuevo
+                    # If no messages, wait a bit before trying again
                     await asyncio.sleep(0.1)
             except Exception as e:
-                logger.error(f"Error en el procesador de mensajes: {e}")
+                logger.error(f"Error in message processor: {e}")
                 await asyncio.sleep(0.1)
 
     def _run_mqtt_client(self) -> None:
-        """Ejecuta el loop del cliente MQTT en un hilo separado."""
+        """Run the MQTT client loop in a separate thread."""
         try:
             self.client.loop_forever()
         except Exception as e:
-            logger.error(f"Error en el loop del cliente MQTT: {e}")
+            logger.error(f"Error in MQTT client loop: {e}")
             self._running = False
 
     async def connect(self) -> None:
-        """Conecta al broker MQTT."""
+        """Connect to the MQTT broker."""
         if not settings.mqtt_enabled:
-            logger.info("MQTT está deshabilitado en la configuración")
+            logger.info("MQTT is disabled in configuration")
             return
 
         try:
-            # Crear cliente MQTT
+            # Create MQTT client
             self.client = mqtt.Client(
                 client_id=settings.mqtt_client_id,
                 callback_api_version=mqtt.CallbackAPIVersion.VERSION1,
             )
 
-            # Configurar callbacks
+            # Configure callbacks
             self.client.on_connect = self._on_connect
             self.client.on_message = self._on_message
             self.client.on_disconnect = self._on_disconnect
 
-            # Configurar autenticación si está disponible
+            # Configure authentication if available
             if settings.mqtt_username and settings.mqtt_password:
                 self.client.username_pw_set(
                     settings.mqtt_username, settings.mqtt_password
                 )
 
-            # Conectar al broker (ejecutar en thread pool)
+            # Connect to broker (execute in thread pool)
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(
                 None,
@@ -170,74 +170,74 @@ class MQTTClient:
             )
 
         except Exception as e:
-            logger.error(f"Error al conectar al broker MQTT: {e}")
+            logger.error(f"Error connecting to MQTT broker: {e}")
             raise
 
     async def disconnect(self) -> None:
-        """Desconecta del broker MQTT."""
+        """Disconnect from the MQTT broker."""
         if self.client:
             try:
                 self.client.loop_stop()
                 self.client.disconnect()
-                logger.info("Desconectado del broker MQTT")
+                logger.info("Disconnected from MQTT broker")
             except Exception as e:
-                logger.error(f"Error al desconectar del broker MQTT: {e}")
+                logger.error(f"Error disconnecting from MQTT broker: {e}")
 
     async def start(self) -> None:
-        """Inicia el cliente MQTT y comienza a escuchar mensajes."""
+        """Start the MQTT client and begin listening for messages."""
         if not settings.mqtt_enabled:
-            logger.info("MQTT está deshabilitado, no se iniciará el cliente")
+            logger.info("MQTT is disabled, client will not start")
             return
 
         if self._running:
-            logger.warning("El cliente MQTT ya está corriendo")
+            logger.warning("MQTT client is already running")
             return
 
         try:
             await self.connect()
             self._running = True
 
-            # Iniciar thread para el loop de MQTT
+            # Start thread for MQTT loop
             self._thread = threading.Thread(
                 target=self._run_mqtt_client, daemon=True
             )
             self._thread.start()
 
-            # Iniciar procesador de mensajes asíncrono
+            # Start asynchronous message processor
             asyncio.create_task(self._message_processor())
 
-            logger.info("Cliente MQTT iniciado correctamente")
+            logger.info("MQTT client started successfully")
         except Exception as e:
-            logger.error(f"Error al iniciar el cliente MQTT: {e}")
+            logger.error(f"Error starting MQTT client: {e}")
             self._running = False
             raise
 
     async def stop(self) -> None:
-        """Detiene el cliente MQTT."""
+        """Stop the MQTT client."""
         if not self._running:
             return
 
         self._running = False
 
-        # Detener el cliente MQTT
+        # Stop the MQTT client
         await self.disconnect()
 
-        # Esperar a que termine el thread
+        # Wait for thread to finish
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=5.0)
 
-        logger.info("Cliente MQTT detenido")
+        logger.info("MQTT client stopped")
 
 
-# Instancia singleton del cliente MQTT
+# Singleton instance of the MQTT client
 _mqtt_client: MQTTClient | None = None
 
 
 def get_mqtt_client() -> MQTTClient:
-    """Obtiene la instancia singleton del cliente MQTT.
+    """Get the singleton instance of the MQTT client.
 
     Returns:
-        Instancia del cliente MQTT
+        MQTT client instance
     """
     global _mqtt_client
     if _mqtt_client is None:

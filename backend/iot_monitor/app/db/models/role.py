@@ -1,4 +1,4 @@
-"""Modelo Role."""
+"""Role model."""
 
 from sqlalchemy import Column, String, Text
 from sqlalchemy.dialects.postgresql import UUID
@@ -9,7 +9,7 @@ from app.db.base import Base
 
 
 class Role(Base):
-    """Modelo de Role."""
+    """Role model."""
 
     __tablename__ = "roles"
 
@@ -17,7 +17,7 @@ class Role(Base):
     name = Column(String(255), nullable=False, unique=True)
     description = Column(Text, nullable=True)
 
-    # Relaciones
+    # Relationships
     users = relationship("User", back_populates="role")
 
     def __repr__(self):

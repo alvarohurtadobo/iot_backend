@@ -1,4 +1,4 @@
-"""Modelo Business."""
+"""Business model."""
 
 from sqlalchemy import Column, String, Text, DateTime
 from sqlalchemy.dialects.postgresql import UUID
@@ -10,7 +10,7 @@ from app.db.base import Base
 
 
 class Business(Base):
-    """Modelo de Business."""
+    """Business model."""
 
     __tablename__ = "businesses"
 
@@ -22,7 +22,7 @@ class Business(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
-    # Relaciones
+    # Relationships
     branches = relationship("Branch", back_populates="business", cascade="all, delete-orphan")
     machines = relationship("Machine", back_populates="business", cascade="all, delete-orphan")
     users = relationship("User", back_populates="business")

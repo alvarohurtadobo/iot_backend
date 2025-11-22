@@ -1,4 +1,4 @@
-"""Modelo User."""
+"""User model."""
 
 from sqlalchemy import Column, String, Text, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
@@ -10,7 +10,7 @@ from app.db.base import Base
 
 
 class User(Base):
-    """Modelo de User."""
+    """User model."""
 
     __tablename__ = "users"
 
@@ -19,7 +19,7 @@ class User(Base):
     last_name = Column(String(255), nullable=False)
     profile_picture = Column(String(500), nullable=True)
     email = Column(String(255), nullable=False, unique=True, index=True)
-    password = Column(String(255), nullable=False)  # Hash de contraseña
+    password = Column(String(255), nullable=False)  # Password hash
     role_id = Column(UUID(as_uuid=True), ForeignKey("roles.id"), nullable=False)
     business_id = Column(UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=True)
     branch_id = Column(UUID(as_uuid=True), ForeignKey("branches.id"), nullable=True)
@@ -27,7 +27,7 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
-    # Relaciones
+    # Relationships
     role = relationship("Role", back_populates="users")
     business = relationship("Business", back_populates="users")
     branch = relationship("Branch", back_populates="users", foreign_keys=[branch_id])

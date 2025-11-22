@@ -1,4 +1,4 @@
-"""Modelo Sensor."""
+"""Sensor model."""
 
 from sqlalchemy import Column, String, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
@@ -9,7 +9,7 @@ from app.db.base import Base
 
 
 class Sensor(Base):
-    """Modelo de Sensor."""
+    """Sensor model."""
 
     __tablename__ = "sensors"
 
@@ -19,7 +19,7 @@ class Sensor(Base):
     device_id = Column(UUID(as_uuid=True), ForeignKey("devices.id"), nullable=False, index=True)
     machine_id = Column(UUID(as_uuid=True), ForeignKey("machines.id"), nullable=False, index=True)
 
-    # Relaciones
+    # Relationships
     sensor_type = relationship("SensorType", back_populates="sensors")
     device = relationship("Device", back_populates="sensors")
     machine = relationship("Machine", back_populates="sensors")

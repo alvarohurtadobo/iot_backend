@@ -1,4 +1,4 @@
-"""Modelo Branch."""
+"""Branch model."""
 
 from sqlalchemy import Column, String, Text, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
@@ -10,7 +10,7 @@ from app.db.base import Base
 
 
 class Branch(Base):
-    """Modelo de Branch."""
+    """Branch model."""
 
     __tablename__ = "branches"
 
@@ -24,7 +24,7 @@ class Branch(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
-    # Relaciones
+    # Relationships
     business = relationship("Business", back_populates="branches")
     representative = relationship("User", back_populates="branches_as_representative", foreign_keys=[representative_id])
     users = relationship("User", back_populates="branch", foreign_keys="User.branch_id")
