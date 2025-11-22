@@ -27,3 +27,20 @@ class IoTDataRecord(IoTDataIn):
     """Internal/response representation of stored data."""
 
     pass
+
+
+class DeviceRegisterIn(BaseModel):
+    """Payload for device state registration."""
+
+    device_id: UUID = Field(..., description="Identifier of the device")
+    timestamp: datetime = Field(
+        ...,
+        description="Time when the state was registered",
+    )
+    state: float = Field(..., description="State value of the device")
+
+
+class DeviceRegisterRecord(DeviceRegisterIn):
+    """Response representation of device state registration."""
+
+    pass
