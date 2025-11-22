@@ -9,6 +9,8 @@ from uuid import UUID, uuid4
 from fastapi import status
 from fastapi.testclient import TestClient
 
+from app.db.models.device import Device
+from app.db.models.device import Device
 from app.db.models.time_data import TimeData
 from app.iot_data.schemas import IoTDataRecord
 

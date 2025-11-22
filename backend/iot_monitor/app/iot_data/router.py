@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from typing import List
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db.base import get_db
+from app.db.models.device import Device
 from app.db.models.time_data import TimeData
-from app.iot_data.schemas import IoTDataIn, IoTDataRecord
+from app.iot_data.schemas import DeviceRegisterIn, DeviceRegisterRecord, IoTDataIn, IoTDataRecord
 
 router = APIRouter(prefix="/iot", tags=["iot"])
 
@@ -82,3 +83,31 @@ def ingest_many_iot_data(
         )
         for time_data in time_data_list
     ]
+
+
+@router.post("/register", response_model=DeviceRegisterRecord, status_code=status.HTTP_200_OK)
+def register_device_state(
+    payload: DeviceRegisterIn,
+    db: Session = Depends(get_db),
+) -> DeviceRegisterRecord:
+    """Register the state of an IoT device."""
+    # Get the device
+    device = db.query(Device).filter(Device.id == payload.device_id).first()
+    
+    if not device:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Device with id {payload.device_id} not found",
+        )
+    
+    # Update device state
+    device.state = payload.state
+    device.updated_at = payload.timestamp
+    db.commit()
+    db.refresh(device)
+    
+    return DeviceRegisterRecord(
+        device_id=payload.device_id,
+        timestamp=payload.timestamp,
+        state=payload.state,
+    )

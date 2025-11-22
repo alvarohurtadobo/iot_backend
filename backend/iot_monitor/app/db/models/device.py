@@ -1,6 +1,6 @@
 """Modelo Device."""
 
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Float
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -21,6 +21,7 @@ class Device(Base):
     type_id = Column(UUID(as_uuid=True), ForeignKey("device_types.id"), nullable=False, index=True)
     machine_id = Column(UUID(as_uuid=True), ForeignKey("machines.id"), nullable=False, index=True)
     location = Column(String(500), nullable=True)
+    state = Column(Float, nullable=True, description="Current state value of the device")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
