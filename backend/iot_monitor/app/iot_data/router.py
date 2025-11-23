@@ -100,8 +100,8 @@ def register_device_state(
             detail=f"Device with id {payload.device_id} not found",
         )
     
-    # Update device state
-    device.state = payload.state
+    # Update device state (DeviceState enum automatically converts to string)
+    device.state = payload.state.value
     device.updated_at = payload.timestamp
     db.commit()
     db.refresh(device)
