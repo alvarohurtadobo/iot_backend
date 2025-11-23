@@ -68,7 +68,7 @@ class TestDeviceRegister:
         payload = {
             "device_id": str(device_id),
             "timestamp": timestamp.isoformat(),
-            "state": 100.0,
+            "state": DeviceState.ACTIVE.value,
         }
 
         # Act
@@ -85,7 +85,7 @@ class TestDeviceRegister:
         # Arrange
         payload = {
             "timestamp": datetime.utcnow().isoformat(),
-            "state": 100.0,
+            "state": DeviceState.CREATED.value,
         }
 
         # Act
@@ -120,7 +120,7 @@ class TestDeviceRegister:
         payload = {
             "device_id": "invalid-uuid",
             "timestamp": datetime.utcnow().isoformat(),
-            "state": 100.0,
+            "state": DeviceState.ACTIVE.value,
         }
 
         # Act
@@ -130,38 +130,39 @@ class TestDeviceRegister:
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         assert not mock_db_session.commit.called
 
-    def test_post_device_register_negative_state(
+    def test_post_device_register_all_states(
         self, client: TestClient, mock_db_session: MagicMock
     ) -> None:
-        """Test: POST /v1/iot/register accepts negative state values."""
+        """Test: POST /v1/iot/register accepts all valid state values."""
         # Arrange
         device_id = uuid4()
-        state = -50.0
+        states = [DeviceState.CREATED, DeviceState.ACTIVE, DeviceState.DISABLED, DeviceState.ERROR]
         timestamp = datetime.utcnow()
 
-        mock_device = Device(
-            id=device_id,
-            name="Test Device",
-            code="TEST001",
-            type_id=uuid4(),
-            machine_id=uuid4(),
-        )
-        
-        mock_db_session.query.return_value.filter.return_value.first.return_value = mock_device
-        mock_db_session.commit.return_value = None
-        mock_db_session.refresh.return_value = None
+        for state_enum in states:
+            mock_device = Device(
+                id=device_id,
+                name="Test Device",
+                code="TEST001",
+                type_id=uuid4(),
+                machine_id=uuid4(),
+            )
+            
+            mock_db_session.query.return_value.filter.return_value.first.return_value = mock_device
+            mock_db_session.commit.return_value = None
+            mock_db_session.refresh.return_value = None
 
-        payload = {
-            "device_id": str(device_id),
-            "timestamp": timestamp.isoformat(),
-            "state": state,
-        }
+            payload = {
+                "device_id": str(device_id),
+                "timestamp": timestamp.isoformat(),
+                "state": state_enum.value,
+            }
 
-        # Act
-        response = client.post("/v1/iot/register", json=payload)
+            # Act
+            response = client.post("/v1/iot/register", json=payload)
 
-        # Assert
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["state"] == state
+            # Assert
+            assert response.status_code == status.HTTP_200_OK
+            data = response.json()
+            assert data["state"] == state_enum.value
 
