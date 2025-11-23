@@ -214,12 +214,22 @@ Backend for centralization of data from multiple IoT devices.
   }
 ]
 ```
+
 - POST /v1/iot/register
 ```json
 {
   "device_id": "123",
   "timestamp": "2021-01-01T00:00:00Z",
-  "state": 100
+  "state": "created"
+}
+```
+
+- POST /v1/iot/update
+```json
+{
+  "device_id": "123",
+  "timestamp": "2021-01-01T00:00:00Z",
+  "state": "active"
 }
 ```
 

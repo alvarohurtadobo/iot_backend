@@ -3,9 +3,19 @@
 from __future__ import annotations
 
 from datetime import datetime
+from enum import Enum
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
+
+
+class DeviceState(str, Enum):
+    """Device state enumeration."""
+
+    CREATED = "created"
+    ACTIVE = "active"
+    DISABLED = "disabled"
+    ERROR = "error"
 
 
 class IoTDataIn(BaseModel):
@@ -37,7 +47,7 @@ class DeviceRegisterIn(BaseModel):
         ...,
         description="Time when the state was registered",
     )
-    state: float = Field(..., description="State value of the device")
+    state: DeviceState = Field(..., description="State of the device (created, active, disabled, error)")
 
 
 class DeviceRegisterRecord(DeviceRegisterIn):

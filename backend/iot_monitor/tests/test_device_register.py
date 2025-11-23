@@ -10,6 +10,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from app.db.models.device import Device
+from app.iot_data.schemas import DeviceState
 
 
 class TestDeviceRegister:
@@ -21,7 +22,7 @@ class TestDeviceRegister:
         """Test: POST /v1/iot/register with valid data returns 200."""
         # Arrange
         device_id = uuid4()
-        state = 100.0
+        state = DeviceState.CREATED.value
         timestamp = datetime.utcnow()
 
         mock_device = Device(
