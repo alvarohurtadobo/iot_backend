@@ -111,3 +111,31 @@ def register_device_state(
         timestamp=payload.timestamp,
         state=payload.state,
     )
+
+
+@router.post("/update", response_model=DeviceRegisterRecord, status_code=status.HTTP_200_OK)
+def update_device_state(
+    payload: DeviceRegisterIn,
+    db: Session = Depends(get_db),
+) -> DeviceRegisterRecord:
+    """Update the state of an IoT device."""
+    # Get the device
+    device = db.query(Device).filter(Device.id == payload.device_id).first()
+    
+    if not device:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Device with id {payload.device_id} not found",
+        )
+    
+    # Update device state (DeviceState enum automatically converts to string)
+    device.state = payload.state.value
+    device.updated_at = payload.timestamp
+    db.commit()
+    db.refresh(device)
+    
+    return DeviceRegisterRecord(
+        device_id=payload.device_id,
+        timestamp=payload.timestamp,
+        state=payload.state,
+    )
