@@ -6,14 +6,9 @@ from datetime import datetime, timezone
 from threading import RLock
 from typing import Dict
 from uuid import UUID
-import hashlib
 
 from app.api.schemas.users import UserCreate, UserList, UserRead, UserUpdate
-
-
-def _hash_password(raw_password: str) -> str:
-    """Crear un hash SHA256 simple para la contraseña."""
-    return hashlib.sha256(raw_password.encode("utf-8")).hexdigest()
+from app.core.security import get_password_hash
 
 
 class UserService:
@@ -46,7 +41,7 @@ class UserService:
             last_name=payload.last_name,
             email=payload.email,
             role_id=payload.role_id,
-            password_hash=_hash_password(payload.password),
+            password_hash=get_password_hash(payload.password),
             created_at=now,
             updated_at=now,
             deleted_at=None,
@@ -64,7 +59,7 @@ class UserService:
 
             update_data = payload.model_dump()
             if "password" in update_data:
-                update_data["password_hash"] = _hash_password(update_data.pop("password"))
+                update_data["password_hash"] = get_password_hash(update_data.pop("password"))
             update_data["updated_at"] = datetime.now(timezone.utc)
 
             updated_user = stored.model_copy(update=update_data)
