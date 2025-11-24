@@ -50,6 +50,14 @@ class UserRead(UserBase):
     deleted_at: Optional[datetime] = None
 
 
+class UserPublic(UserBase):
+    """Respuesta pública de un usuario (sin información sensible)."""
+
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+
+
 class UserList(BaseModel):
     """Listado de usuarios."""
 
