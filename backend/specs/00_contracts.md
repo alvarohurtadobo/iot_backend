@@ -56,7 +56,7 @@ Backend for centralization of data from multiple IoT devices.
 {
   "id": "123",
   "name": "temperature",
-  "type_id": "123", // Relacional a SensorType
+  "type_id": "123", // Related to SensorType
   "device_id": "123",
   "machine_id": "123",
 }
@@ -77,7 +77,7 @@ Backend for centralization of data from multiple IoT devices.
   "name": "Device 1",
   "code": "DEV1",
   "description": "Device 1",
-  "type_id": "123", // Relacional a DeviceType
+  "type_id": "123", // Related to DeviceType
   "machine_id": "123",
   "location": "123 Main St, Anytown, USA",
   "created_at": "2021-01-01T00:00:00Z",
@@ -100,8 +100,8 @@ Backend for centralization of data from multiple IoT devices.
   "name": "Machine 1",
   "code": "MACHINE1",
   "description": "Machine 1",
-  "business_id": "123", // Relacional a Business
-  "branch_id": "123", // Relacional a Branch
+  "business_id": "123", // Related to Business
+  "branch_id": "123", // Related to Branch
   "year": 2021,
   "created_at": "2021-01-01T00:00:00Z",
   "updated_at": "2021-01-01T00:00:00Z",
@@ -117,9 +117,9 @@ Backend for centralization of data from multiple IoT devices.
   "profile_picture": "https://example.com/profile.jpg",
   "email": "user1@example.com",
   "password": "password",
-  "role_id": "123", // Relacional a Role
-  "business_id": "123", // Relacional a Business
-  "branch_id": "123", // Relacional a Branch
+  "role_id": "123", // Related to Role
+  "business_id": "123", // Related to Business
+  "branch_id": "123", // Related to Branch
   "created_at": "2021-01-01T00:00:00Z",
   "updated_at": "2021-01-01T00:00:00Z",
   "deleted_at": "2021-01-01T00:00:00Z",
@@ -139,11 +139,11 @@ Backend for centralization of data from multiple IoT devices.
   "id": "123",
   "name": "Report 1",
   "description": "Report 1",
-  "business_id": "123", // Relacional a Business
-  "branch_id": "123", // Relacional a Branch
-  "machine_id": "123", // Relacional a Machine
-  "device_id": "123", // Relacional a Device
-  "time_data_ids": ["123", "124", "125"], // Relacional a TimeData
+  "business_id": "123", // Related to Business
+  "branch_id": "123", // Related to Branch
+  "machine_id": "123", // Related to Machine
+  "device_id": "123", // Related to Device
+  "time_data_ids": ["123", "124", "125"], // Related to TimeData
   "created_at": "2021-01-01T00:00:00Z",
   "updated_at": "2021-01-01T00:00:00Z",
   "deleted_at": "2021-01-01T00:00:00Z",
@@ -166,8 +166,8 @@ Backend for centralization of data from multiple IoT devices.
   "id": "123",
   "name": "Branch 1",
   "description": "Branch 1",
-  "business_id": "123", // Relacional a Business
-  "representative_id": "123", // Relacional a User
+  "business_id": "123", // Related to Business
+  "representative_id": "123", // Related to User
   "address": "123 Main St, Anytown, USA",
   "created_at": "2021-01-01T00:00:00Z",
   "updated_at": "2021-01-01T00:00:00Z",
