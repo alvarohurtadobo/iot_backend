@@ -1,4 +1,4 @@
-"""Endpoints para gestión de roles."""
+"""Endpoints for role management."""
 
 from __future__ import annotations
 
@@ -14,19 +14,19 @@ router = APIRouter(prefix="/roles", tags=["roles"])
 
 @router.get("/", response_model=RoleList)
 def list_roles(service: RoleService = Depends(get_role_service)) -> RoleList:
-    """Listar roles disponibles."""
+    """List available roles."""
     return service.list()
 
 
 @router.get("/{role_id}", response_model=RoleRead)
 def get_role(role_id: UUID, service: RoleService = Depends(get_role_service)) -> RoleRead:
-    """Obtener un role por identificador."""
+    """Get a role by identifier."""
     try:
         return service.get(role_id)
-    except KeyError as exc:  # pragma: no cover - flujo simple
+    except KeyError as exc:  # pragma: no cover - simple flow
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Role no encontrado",
+            detail="Role not found",
         ) from exc
 
 
@@ -34,7 +34,7 @@ def get_role(role_id: UUID, service: RoleService = Depends(get_role_service)) ->
 def create_role(
     payload: RoleCreate, service: RoleService = Depends(get_role_service)
 ) -> RoleRead:
-    """Crear un nuevo role."""
+    """Create a new role."""
     return service.create(payload)
 
 
@@ -42,23 +42,23 @@ def create_role(
 def update_role(
     role_id: UUID, payload: RoleUpdate, service: RoleService = Depends(get_role_service)
 ) -> RoleRead:
-    """Actualizar un role existente."""
+    """Update an existing role."""
     try:
         return service.update(role_id, payload)
     except KeyError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Role no encontrado",
+            detail="Role not found",
         ) from exc
 
 
 @router.delete("/{role_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_role(role_id: UUID, service: RoleService = Depends(get_role_service)) -> None:
-    """Eliminar un role."""
+    """Delete a role."""
     try:
         service.delete(role_id)
     except KeyError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Role no encontrado",
+            detail="Role not found",
         ) from exc

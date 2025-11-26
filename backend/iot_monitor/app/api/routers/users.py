@@ -1,4 +1,4 @@
-"""Endpoints para gestión de usuarios."""
+"""Endpoints for user management."""
 
 from __future__ import annotations
 
@@ -16,19 +16,19 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 @router.get("/", response_model=UserList)
 def list_users(service: UserService = Depends(get_user_service)) -> UserList:
-    """Listar usuarios activos."""
+    """List active users."""
     return service.list()
 
 
 @router.get("/{user_id}", response_model=UserRead)
 def get_user(user_id: UUID, service: UserService = Depends(get_user_service)) -> UserRead:
-    """Obtener un usuario por identificador."""
+    """Get a user by identifier."""
     try:
         return service.get(user_id)
     except KeyError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Usuario no encontrado",
+            detail="User not found",
         ) from exc
 
 
@@ -36,7 +36,7 @@ def get_user(user_id: UUID, service: UserService = Depends(get_user_service)) ->
 def create_user(
     payload: UserCreate, service: UserService = Depends(get_user_service)
 ) -> UserRead:
-    """Crear un nuevo usuario."""
+    """Create a new user."""
     return service.create(payload)
 
 
@@ -44,31 +44,31 @@ def create_user(
 def update_user(
     user_id: UUID, payload: UserUpdate, service: UserService = Depends(get_user_service)
 ) -> UserRead:
-    """Actualizar información de un usuario."""
+    """Update user information."""
     try:
         return service.update(user_id, payload)
     except KeyError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Usuario no encontrado",
+            detail="User not found",
         ) from exc
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(user_id: UUID, service: UserService = Depends(get_user_service)) -> None:
-    """Eliminar lógicamente un usuario."""
+    """Logically delete a user."""
     try:
         service.delete(user_id)
     except KeyError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Usuario no encontrado",
+            detail="User not found",
         ) from exc
 
 
 @router.get("/me", response_model=UserPublic)
 def get_current_user_info(current_user: User = Depends(get_current_user)) -> UserPublic:
-    """Obtener información del usuario autenticado actual."""
+    """Get information about the current authenticated user."""
     return UserPublic(
         id=current_user.id,
         first_name=current_user.first_name,

@@ -1,4 +1,4 @@
-"""Esquemas de datos para Usuarios."""
+"""Data schemas for Users."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pydantic import BaseModel, EmailStr, Field
 
 
 class UserBase(BaseModel):
-    """Campos comunes del usuario."""
+    """Common user fields."""
 
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
@@ -19,14 +19,14 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    """Payload para crear un usuario."""
+    """Payload to create a user."""
 
     id: UUID = Field(default_factory=uuid4)
     password: str = Field(..., min_length=8, max_length=128)
 
 
 class UserUpdate(BaseModel):
-    """Payload para actualizar un usuario."""
+    """Payload to update a user."""
 
     first_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
     last_name: Optional[str] = Field(default=None, min_length=1, max_length=100)
@@ -35,13 +35,13 @@ class UserUpdate(BaseModel):
     password: Optional[str] = Field(default=None, min_length=8, max_length=128)
 
     def model_dump(self, *args, **kwargs):  # type: ignore[override]
-        """Evitar campos nulos en actualizaciones parciales."""
+        """Avoid null fields in partial updates."""
         data = super().model_dump(*args, **kwargs)
         return {key: value for key, value in data.items() if value is not None}
 
 
 class UserRead(UserBase):
-    """Respuesta estándar de un usuario."""
+    """Standard user response."""
 
     id: UUID
     password_hash: str
@@ -51,7 +51,7 @@ class UserRead(UserBase):
 
 
 class UserPublic(UserBase):
-    """Respuesta pública de un usuario (sin información sensible)."""
+    """Public user response (without sensitive information)."""
 
     id: UUID
     created_at: datetime
@@ -59,7 +59,7 @@ class UserPublic(UserBase):
 
 
 class UserList(BaseModel):
-    """Listado de usuarios."""
+    """User list."""
 
     items: list[UserRead]
     total: int

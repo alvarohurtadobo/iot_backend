@@ -1,4 +1,4 @@
-"""Servicio para almacenar TimeData en la base de datos."""
+"""Service for storing TimeData in the database."""
 
 import logging
 from uuid import UUID
@@ -12,17 +12,17 @@ logger = logging.getLogger(__name__)
 
 
 def store_time_data(db: Session, message: TimeDataMQTTMessage) -> TimeData:
-    """Almacena un registro de TimeData en la base de datos.
+    """Store a TimeData record in the database.
 
     Args:
-        db: Sesión de base de datos SQLAlchemy
-        message: Mensaje MQTT con los datos de TimeData
+        db: SQLAlchemy database session
+        message: MQTT message with TimeData
 
     Returns:
-        Instancia de TimeData creada
+        Created TimeData instance
 
     Raises:
-        Exception: Si hay un error al almacenar los datos
+        Exception: If there is an error storing the data
     """
     try:
         time_data = TimeData(
@@ -37,28 +37,28 @@ def store_time_data(db: Session, message: TimeDataMQTTMessage) -> TimeData:
         db.commit()
         db.refresh(time_data)
         logger.info(
-            f"TimeData almacenado: sensor_id={message.sensor_id}, "
+            f"TimeData stored: sensor_id={message.sensor_id}, "
             f"device_id={message.device_id}, value={message.value}"
         )
         return time_data
     except Exception as e:
         db.rollback()
-        logger.error(f"Error al almacenar TimeData: {e}")
+        logger.error(f"Error storing TimeData: {e}")
         raise
 
 
 def get_time_data_by_sensor(
     db: Session, sensor_id: UUID, limit: int = 100
 ) -> list[TimeData]:
-    """Obtiene registros de TimeData por sensor_id.
+    """Get TimeData records by sensor_id.
 
     Args:
-        db: Sesión de base de datos SQLAlchemy
-        sensor_id: ID del sensor
-        limit: Número máximo de registros a retornar
+        db: SQLAlchemy database session
+        sensor_id: Sensor ID
+        limit: Maximum number of records to return
 
     Returns:
-        Lista de registros TimeData
+        List of TimeData records
     """
     return (
         db.query(TimeData)
@@ -72,15 +72,15 @@ def get_time_data_by_sensor(
 def get_time_data_by_device(
     db: Session, device_id: UUID, limit: int = 100
 ) -> list[TimeData]:
-    """Obtiene registros de TimeData por device_id.
+    """Get TimeData records by device_id.
 
     Args:
-        db: Sesión de base de datos SQLAlchemy
-        device_id: ID del dispositivo
-        limit: Número máximo de registros a retornar
+        db: SQLAlchemy database session
+        device_id: Device ID
+        limit: Maximum number of records to return
 
     Returns:
-        Lista de registros TimeData
+        List of TimeData records
     """
     return (
         db.query(TimeData)
