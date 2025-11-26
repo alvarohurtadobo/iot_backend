@@ -1,4 +1,4 @@
-"""Servicios en memoria para roles."""
+"""In-memory services for roles."""
 
 from __future__ import annotations
 
@@ -10,20 +10,20 @@ from app.api.schemas.roles import RoleCreate, RoleList, RoleRead, RoleUpdate
 
 
 class RoleService:
-    """Servicio simple para gestionar roles en memoria."""
+    """Simple service for managing roles in memory."""
 
     def __init__(self) -> None:
         self._storage: Dict[UUID, RoleRead] = {}
         self._lock = RLock()
 
     def list(self) -> RoleList:
-        """Retornar todos los roles."""
+        """Return all roles."""
         with self._lock:
             items = list(self._storage.values())
         return RoleList(items=items, total=len(items))
 
     def get(self, role_id: UUID) -> RoleRead:
-        """Obtener un role por su identificador."""
+        """Get a role by its identifier."""
         with self._lock:
             role = self._storage.get(role_id)
         if role is None:
@@ -31,14 +31,14 @@ class RoleService:
         return role
 
     def create(self, payload: RoleCreate) -> RoleRead:
-        """Registrar un nuevo role."""
+        """Register a new role."""
         data = RoleRead(**payload.model_dump())
         with self._lock:
             self._storage[data.id] = data
         return data
 
     def update(self, role_id: UUID, payload: RoleUpdate) -> RoleRead:
-        """Actualizar un role existente."""
+        """Update an existing role."""
         with self._lock:
             stored = self._storage.get(role_id)
             if stored is None:
@@ -48,7 +48,7 @@ class RoleService:
             return updated_data
 
     def delete(self, role_id: UUID) -> None:
-        """Eliminar un role."""
+        """Delete a role."""
         with self._lock:
             if role_id not in self._storage:
                 raise KeyError(str(role_id))
@@ -56,7 +56,7 @@ class RoleService:
 
 
 def get_role_service() -> RoleService:
-    """Obtener instancia singleton de RoleService."""
+    """Get singleton instance of RoleService."""
 
     if not hasattr(get_role_service, "_instance"):
         get_role_service._instance = RoleService()  # type: ignore[attr-defined]
