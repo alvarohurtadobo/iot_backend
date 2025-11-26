@@ -1,4 +1,4 @@
-"""Servicios en memoria para usuarios."""
+"""In-memory services for users."""
 
 from __future__ import annotations
 
@@ -12,20 +12,20 @@ from app.core.security import get_password_hash
 
 
 class UserService:
-    """Gestión temporal de usuarios en memoria."""
+    """Temporary in-memory user management."""
 
     def __init__(self) -> None:
         self._storage: Dict[UUID, UserRead] = {}
         self._lock = RLock()
 
     def list(self) -> UserList:
-        """Retornar usuarios activos."""
+        """Return active users."""
         with self._lock:
             items = [user for user in self._storage.values() if user.deleted_at is None]
         return UserList(items=items, total=len(items))
 
     def get(self, user_id: UUID) -> UserRead:
-        """Obtener un usuario por id, si está activo."""
+        """Get a user by id, if active."""
         with self._lock:
             user = self._storage.get(user_id)
         if user is None or user.deleted_at is not None:
@@ -33,7 +33,7 @@ class UserService:
         return user
 
     def create(self, payload: UserCreate) -> UserRead:
-        """Registrar un nuevo usuario."""
+        """Register a new user."""
         now = datetime.now(timezone.utc)
         user = UserRead(
             id=payload.id,
@@ -51,7 +51,7 @@ class UserService:
         return user
 
     def update(self, user_id: UUID, payload: UserUpdate) -> UserRead:
-        """Actualizar datos de un usuario existente."""
+        """Update data for an existing user."""
         with self._lock:
             stored = self._storage.get(user_id)
             if stored is None or stored.deleted_at is not None:
@@ -67,7 +67,7 @@ class UserService:
             return updated_user
 
     def delete(self, user_id: UUID) -> None:
-        """Marcar un usuario como eliminado."""
+        """Mark a user as deleted."""
         with self._lock:
             stored = self._storage.get(user_id)
             if stored is None or stored.deleted_at is not None:
@@ -78,7 +78,7 @@ class UserService:
 
 
 def get_user_service() -> UserService:
-    """Obtener instancia singleton de UserService."""
+    """Get singleton instance of UserService."""
 
     if not hasattr(get_user_service, "_instance"):
         get_user_service._instance = UserService()  # type: ignore[attr-defined]

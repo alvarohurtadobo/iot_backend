@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     mqtt_topic: str = "iot/data"
     mqtt_client_id: str = "iot_monitor_client"
     mqtt_enabled: bool = True
-    
+
     # JWT configuration
     secret_key: str = "your-secret-key-change-in-production"
     algorithm: str = "HS256"

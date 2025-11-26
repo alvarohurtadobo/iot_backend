@@ -1,4 +1,4 @@
-"""Punto de entrada de la aplicación FastAPI."""
+"""FastAPI application entry point."""
 
 import logging
 from contextlib import asynccontextmanager
@@ -9,7 +9,7 @@ from app.api.api_v1 import api_router
 from app.core.config import settings
 from app.mqtt.client import get_mqtt_client
 
-# Configurar logging
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -19,24 +19,24 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Gestiona el ciclo de vida de la aplicación (startup/shutdown)."""
-    # Startup: Iniciar cliente MQTT
-    logger.info("Iniciando aplicación...")
+    """Manage the application lifecycle (startup/shutdown)."""
+    # Startup: Start MQTT client
+    logger.info("Starting application...")
     mqtt_client = get_mqtt_client()
     try:
         await mqtt_client.start()
     except Exception as e:
-        logger.error(f"Error al iniciar cliente MQTT: {e}")
-        # Continuar aunque falle MQTT para que la API siga funcionando
+        logger.error(f"Error starting MQTT client: {e}")
+        # Continue even if MQTT fails so the API keeps working
 
     yield
 
-    # Shutdown: Detener cliente MQTT
-    logger.info("Deteniendo aplicación...")
+    # Shutdown: Stop MQTT client
+    logger.info("Stopping application...")
     try:
         await mqtt_client.stop()
     except Exception as e:
-        logger.error(f"Error al detener cliente MQTT: {e}")
+        logger.error(f"Error stopping MQTT client: {e}")
 
 
 app = FastAPI(
@@ -49,13 +49,13 @@ app.include_router(api_router, prefix="/v1")
 
 @app.get("/")
 def read_root() -> dict[str, str]:
-    """Mensaje de bienvenida para la API."""
-    return {"message": "Bienvenido a iotMonitor"}
+    """Welcome message for the API."""
+    return {"message": "Welcome to iotMonitor"}
 
 
 @app.get("/health")
 def read_health() -> dict[str, str]:
-    """Endpoint de health check básico."""
+    """Basic health check endpoint."""
     mqtt_client = get_mqtt_client()
     mqtt_status = "connected" if mqtt_client._running else "disconnected"
     
