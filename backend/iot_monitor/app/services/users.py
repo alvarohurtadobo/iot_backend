@@ -33,7 +33,7 @@ class UserService:
         return user
 
     def create(self, payload: UserCreate) -> UserRead:
-        """Register a new user."""
+        """Create a new user."""
         now = datetime.now(timezone.utc)
         user = UserRead(
             id=payload.id,

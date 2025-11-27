@@ -31,7 +31,7 @@ class RoleService:
         return role
 
     def create(self, payload: RoleCreate) -> RoleRead:
-        """Register a new role."""
+        """Create a new role."""
         data = RoleRead(**payload.model_dump())
         with self._lock:
             self._storage[data.id] = data
