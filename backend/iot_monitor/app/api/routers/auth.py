@@ -21,7 +21,7 @@ def login(
     login_data: LoginRequest,
     db: Session = Depends(get_db),
 ) -> Token:
-    """Authenticate user and return access token."""
+    """Authenticate user to return access token."""
     # Find user by email
     user = db.query(User).filter(User.email == login_data.email).first()
     
