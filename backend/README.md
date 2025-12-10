@@ -16,7 +16,7 @@ The dashboard is served with the v1/dashboard endpoints
 ### Frontend
 - **Typescript** - Typed language
 - **CSS Modules** - Modular Styles
-- **SASS** - Prepaocesador de CSS
+- **SASS** - CSS Preprocessor
 
 ### Mobile
 - **iOS** - Swift + SwiftUI
@@ -43,8 +43,8 @@ IoT Devices (External) -------> Fast API Gateway ------> Database (PostgreSQL)
   - id (string)
   - name (string)
   - description (string)
-  - business_id (string) // Relacional a Business
-  - representative_id (string) // Relacional a User
+  - business_id (string) // Related to Business
+  - representative_id (string) // Related to User
   - address (string)
   - created_at (string - datetime ISO)
   - updated_at (string - datetime ISO)
@@ -54,7 +54,7 @@ IoT Devices (External) -------> Fast API Gateway ------> Database (PostgreSQL)
   - id (string)
   - name (string)
   - description (string)
-  - branch_id (string) // Relacional a Branch
+  - branch_id (string) // Related to Branch
   - created_at (string - datetime ISO)
   - updated_at (string - datetime ISO)
   - deleted_at (string - datetime ISO)
@@ -63,7 +63,7 @@ IoT Devices (External) -------> Fast API Gateway ------> Database (PostgreSQL)
   - id (string)
   - name (string)
   - description (string)
-  - machine_id (string) // Relacional a Machine
+  - machine_id (string) // Related to Machine
   - created_at (string - datetime ISO)
   - updated_at (string - datetime ISO)
   - deleted_at (string - datetime ISO)
@@ -72,7 +72,7 @@ IoT Devices (External) -------> Fast API Gateway ------> Database (PostgreSQL)
   - id (string)
   - name (string)
   - description (string)
-  - device_id (string) // Relacional a Device
+  - device_id (string) // Related to Device
   - type (string)
   - created_at (string - datetime ISO)
   - updated_at (string - datetime ISO)
@@ -80,7 +80,7 @@ IoT Devices (External) -------> Fast API Gateway ------> Database (PostgreSQL)
 
 - **TimeData**
   - id (string)
-  - sensor_id (string) // Relacional a Sensor
+  - sensor_id (string) // Related to Sensor
   - value (float)
   - timestamp (string - datetime ISO)
   - created_at (string - datetime ISO)
@@ -91,11 +91,11 @@ IoT Devices (External) -------> Fast API Gateway ------> Database (PostgreSQL)
   - id (string)
   - name (string)
   - description (string)
-  - business_id (string) // Relacional a Business
-  - branch_id (string) // Relacional a Branch
-  - machine_id (string) // Relacional a Machine
-  - device_id (string) // Relacional a Device
-  - time_data_ids (array of string) // Relacional a TimeData
+  - business_id (string) // Related to Business
+  - branch_id (string) // Related to Branch
+  - machine_id (string) // Related to Machine
+  - device_id (string) // Related to Device
+  - time_data_ids (array of string) // Related to TimeData
   - created_at (string - datetime ISO)
   - updated_at (string - datetime ISO)
   - deleted_at (string - datetime ISO)
@@ -122,7 +122,7 @@ IoT Devices (External) -------> Fast API Gateway ------> Database (PostgreSQL)
   - last_name (string)
   - email (string)
   - password_hash (string)
-  - role_id (string) // Relacional a Role
+  - role_id (string) // Related to Role
   - created_at (string - datetime ISO)
   - updated_at (string - datetime ISO)
   - deleted_at (string - datetime ISO)

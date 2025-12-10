@@ -1,4 +1,4 @@
-"""Configuración del entorno de Alembic."""
+"""Alembic environment configuration."""
 
 from logging.config import fileConfig
 
@@ -7,17 +7,17 @@ from sqlalchemy import pool
 
 from alembic import context
 
-# Importar la configuración de la aplicación
+# Import application configuration
 import sys
 from pathlib import Path
 
-# Agregar el directorio raíz del proyecto al path
+# Add project root directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.core.config import settings
 from app.db.base import Base
 
-# Importar todos los modelos para que Alembic los detecte
+# Import all models so Alembic can detect them
 from app.db.models import *  # noqa: F401, F403
 
 # this is the Alembic Config object, which provides
@@ -40,7 +40,7 @@ target_metadata = Base.metadata
 
 
 def get_url():
-    """Obtener la URL de la base de datos desde la configuración."""
+    """Get the database URL from configuration."""
     return settings.database_url
 
 
