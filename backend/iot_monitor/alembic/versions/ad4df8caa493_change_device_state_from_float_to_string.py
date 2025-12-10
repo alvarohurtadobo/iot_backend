@@ -20,35 +20,35 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Verificar si la columna state existe
+    # Check if state column exists
     conn = op.get_bind()
     inspector = inspect(conn)
     columns = [col['name'] for col in inspector.get_columns('devices')]
     
     if 'state' in columns:
-        # Si existe, alterar el tipo de Float a String
+        # If it exists, alter the type from Float to String
         op.alter_column('devices', 'state',
                        type_=sa.String(20),
                        existing_type=sa.Float(),
                        existing_nullable=True)
     else:
-        # Si no existe, agregarla como String
+        # If it doesn't exist, add it as String
         op.add_column('devices',
                      sa.Column('state', sa.String(20), nullable=True))
 
 
 def downgrade() -> None:
-    # Revertir el cambio: cambiar de String a Float
+    # Revert the change: change from String to Float
     conn = op.get_bind()
     inspector = inspect(conn)
     columns = [col['name'] for col in inspector.get_columns('devices')]
     
     if 'state' in columns:
-        # Intentar convertir los valores string a float
-        # Si hay valores que no son numéricos, esto podría fallar
+        # Try to convert string values to float
+        # If there are non-numeric values, this might fail
         op.alter_column('devices', 'state',
                        type_=sa.Float(),
                        existing_type=sa.String(20),
                        existing_nullable=True,
-                       postgresql_using='NULL')  # Establecer NULL para valores no numéricos
+                       postgresql_using='NULL')  # Set NULL for non-numeric values
 

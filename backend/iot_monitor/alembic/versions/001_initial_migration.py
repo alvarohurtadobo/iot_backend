@@ -19,7 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Crear tabla roles
+    # Create roles table
     op.create_table(
         'roles',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
