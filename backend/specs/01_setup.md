@@ -1,8 +1,8 @@
-Crea un proyecto FastAPI básico para una plataforma de centralizacion de datos iot llamada iotMonitor. Debe tener configuración de base de datos PostgreSQL y un endpoint de health. Primero hazlo funcionar localmente, luego dockerízalo.
+Create a basic FastAPI project for an IoT data centralization platform called iotMonitor. It must have PostgreSQL database configuration and a health endpoint. First make it work locally, then dockerize it.
 
-## PASO 1: Crear estructura básica del proyecto.
+## STEP 1: Create basic project structure
 
-Crea la estructura de carpetas:
+Create the folder structure:
 ```
 iot_monitor/
 ├── app/
@@ -18,9 +18,9 @@ iot_monitor/
 └── README.md
 ```
 
-## PASO 2: Configurar dependencias
+## STEP 2: Configure dependencies
 
-Crea pyproject.toml con estas dependencias mínimas:
+Create pyproject.toml with these minimum dependencies:
 - fastapi (>=0.104.0)
 - uvicorn[standard] (>=0.24.0)
 - sqlalchemy (>=2.0.0)
@@ -28,78 +28,78 @@ Crea pyproject.toml con estas dependencias mínimas:
 - pydantic-settings (>=2.0.0)
 - python-dotenv (>=1.0.0)
 
-## PASO 3: Crear configuración de la aplicación
+## STEP 3: Create application configuration
 
-En app/core/config.py:
-- Crear clase Settings usando pydantic-settings
-- Incluir PROJECT_NAME, VERSION
-- Incluir DATABASE_URL para PostgreSQL
-- Configurar para leer variables de entorno
+In app/core/config.py:
+- Create Settings class using pydantic-settings
+- Include PROJECT_NAME, VERSION
+- Include DATABASE_URL for PostgreSQL
+- Configure to read environment variables
 
 
-## PASO 4: Crear aplicación FastAPI básica
+## STEP 4: Create basic FastAPI application
 
-En app/main.py:
-- Crear instancia FastAPI con título y versión desde config
-- Endpoint GET "/" que retorne mensaje de bienvenida
-- Endpoint GET "/health" que retorne status, service name y version
-- NO crear otros endpoints aún
+In app/main.py:
+- Create FastAPI instance with title and version from config
+- GET "/" endpoint that returns welcome message
+- GET "/health" endpoint that returns status, service name and version
+- DO NOT create other endpoints yet
 
-## PASO 5: Verificar funcionamiento local
+## STEP 5: Verify local operation
 
-Instalar dependencias y ejecutar:
+Install dependencies and run:
 ```bash
 uv sync
 uv run uvicorn app.main:app --reload
 ```
 
-Verificar que respondan:
-- http://localhost:8000/ (mensaje bienvenida)
+Verify that they respond:
+- http://localhost:8000/ (welcome message)
 - http://localhost:8000/health (status ok)
-- http://localhost:8000/docs (documentación automática)
+- http://localhost:8000/docs (automatic documentation)
 
-## PASO 6: Crear Dockerfile
+## STEP 6: Create Dockerfile
 
-- Usar imagen Python 3.11-slim
-- Instalar uv para gestión de dependencias
-- Copiar y instalar dependencias del pyproject.toml
-- Copiar código de la aplicación
-- Exponer puerto 8000
-- Comando para ejecutar uvicorn con hot reload
+- Use Python 3.11-slim image
+- Install uv for dependency management
+- Copy and install dependencies from pyproject.toml
+- Copy application code
+- Expose port 8000
+- Command to run uvicorn with hot reload
 
-## PASO 7: Crear docker-compose.yml
+## STEP 7: Create docker-compose.yml
 
-Configurar dos servicios:
+Configure two services:
 
-**Servicio db:**
+**db service:**
 - PostgreSQL 15
-- Variables de entorno: POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
-- Puerto 5432
-- Volume para persistencia de datos
+- Environment variables: POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
+- Port 5432
+- Volume for data persistence
 
-**Servicio api:**
-- Build desde Dockerfile local
-- Puerto 8000
-- Volume para desarrollo (hot reload)
-- Variables de entorno para conexión a DB
-- Depende del servicio db
+**api service:**
+- Build from local Dockerfile
+- Port 8000
+- Volume for development (hot reload)
+- Environment variables for DB connection
+- Depends on db service
 
-## PASO 8: Verificar funcionamiento en Docker
+## STEP 8: Verify Docker operation
 
-Ejecutar:
+Run:
 ```bash
 docker-compose up --build
 ```
 
-Verificar que respondan igual que en local:
+Verify that they respond the same as locally:
 - http://localhost:8000/
 - http://localhost:8000/health
 - http://localhost:8000/docs
 
-## PASO 9: Configurar conexión a base de datos
+## STEP 9: Configure database connection
 
-En app/db/base.py:
-- Configurar SQLAlchemy engine
-- Crear SessionLocal para sesiones de DB
-- Crear Base declarativa para futuros modelos
-- Función get_db() para dependency injection
+In app/db/base.py:
+- Configure SQLAlchemy engine
+- Create SessionLocal for DB sessions
+- Create declarative Base for future models
+- get_db() function for dependency injection
