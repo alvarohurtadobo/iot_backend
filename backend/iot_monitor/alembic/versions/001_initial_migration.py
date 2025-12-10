@@ -29,7 +29,7 @@ def upgrade() -> None:
         sa.UniqueConstraint('name')
     )
     
-    # Crear tabla businesses
+    # Create businesses table
     op.create_table(
         'businesses',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -42,7 +42,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint('id')
     )
     
-    # Crear tabla users (sin foreign key a branches todavía por dependencia circular)
+    # Create users table (without foreign key to branches yet due to circular dependency)
     op.create_table(
         'users',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -64,7 +64,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=False)
     
-    # Crear tabla branches
+    # Create branches table
     op.create_table(
         'branches',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -82,10 +82,10 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_branches_business_id'), 'branches', ['business_id'], unique=False)
     
-    # Agregar foreign key de users a branches después de crear branches
+    # Add foreign key from users to branches after creating branches
     op.create_foreign_key('fk_users_branch_id', 'users', 'branches', ['branch_id'], ['id'])
     
-    # Crear tabla device_types
+    # Create device_types table
     op.create_table(
         'device_types',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -96,7 +96,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_device_types_code'), 'device_types', ['code'], unique=False)
     
-    # Crear tabla sensor_types
+    # Create sensor_types table
     op.create_table(
         'sensor_types',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -108,7 +108,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_sensor_types_code'), 'sensor_types', ['code'], unique=False)
     
-    # Crear tabla machines
+    # Create machines table
     op.create_table(
         'machines',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -130,7 +130,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_machines_business_id'), 'machines', ['business_id'], unique=False)
     op.create_index(op.f('ix_machines_code'), 'machines', ['code'], unique=False)
     
-    # Crear tabla devices
+    # Create devices table
     op.create_table(
         'devices',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -152,7 +152,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_devices_type_id'), 'devices', ['type_id'], unique=False)
     op.create_index(op.f('ix_devices_code'), 'devices', ['code'], unique=False)
     
-    # Crear tabla sensors
+    # Create sensors table
     op.create_table(
         'sensors',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -169,7 +169,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_sensors_machine_id'), 'sensors', ['machine_id'], unique=False)
     op.create_index(op.f('ix_sensors_type_id'), 'sensors', ['type_id'], unique=False)
     
-    # Crear tabla time_data
+    # Create time_data table
     op.create_table(
         'time_data',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -189,7 +189,7 @@ def upgrade() -> None:
     op.create_index('idx_time_data_device_timestamp', 'time_data', ['device_id', 'timestamp'], unique=False)
     op.create_index('idx_time_data_sensor_timestamp', 'time_data', ['sensor_id', 'timestamp'], unique=False)
     
-    # Crear tabla reports
+    # Create reports table
     op.create_table(
         'reports',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -213,7 +213,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_reports_device_id'), 'reports', ['device_id'], unique=False)
     op.create_index(op.f('ix_reports_machine_id'), 'reports', ['machine_id'], unique=False)
     
-    # Crear tabla asociativa report_time_data
+    # Create associative table report_time_data
     op.create_table(
         'report_time_data',
         sa.Column('report_id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -225,7 +225,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    # Eliminar tablas en orden inverso
+    # Drop tables in reverse order
     op.drop_table('report_time_data')
     op.drop_table('reports')
     op.drop_index('idx_time_data_sensor_timestamp', table_name='time_data')
@@ -251,7 +251,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_device_types_code'), table_name='device_types')
     op.drop_table('device_types')
     op.drop_index(op.f('ix_branches_business_id'), table_name='branches')
-    # Eliminar foreign key de users a branches antes de eliminar branches
+    # Drop foreign key from users to branches before dropping branches
     op.drop_constraint('fk_users_branch_id', 'users', type_='foreignkey')
     op.drop_table('branches')
     op.drop_index(op.f('ix_users_email'), table_name='users')
