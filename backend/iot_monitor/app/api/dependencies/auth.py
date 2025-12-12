@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.api.schemas.auth import TokenData
 from app.core.security import decode_access_token
 from app.db.base import get_db
+from app.db.models.revoked_token import RevokedToken
 from app.db.models.user import User
 
 security = HTTPBearer()
@@ -24,17 +25,42 @@ def get_current_user(
     """Get the current authenticated user."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="No se pudieron validar las credenciales",
         headers={"WWW-Authenticate": "Bearer"},
     )
     
     try:
         token = credentials.credentials
         payload = decode_access_token(token)
+        
+        # Check if token is revoked
+        jti = payload.get("jti")
+        if jti:
+            revoked = (
+                db.query(RevokedToken)
+                .filter(RevokedToken.jti == jti)
+                .first()
+            )
+            if revoked:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Token revocado",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+        
+        # Verify token type
+        token_type = payload.get("type")
+        if token_type != "access":
+            raise credentials_exception
+        
         user_id_str: str = payload.get("sub")
         if user_id_str is None:
             raise credentials_exception
-        token_data = TokenData(user_id=user_id_str, email=payload.get("email"))
+        token_data = TokenData(
+            user_id=user_id_str,
+            email=payload.get("email"),
+            jti=jti,
+        )
     except ValueError:
         raise credentials_exception
     
@@ -50,7 +76,7 @@ def get_current_user(
     if user.deleted_at is not None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User account is disabled",
+            detail="Cuenta de usuario deshabilitada",
             headers={"WWW-Authenticate": "Bearer"},
         )
     

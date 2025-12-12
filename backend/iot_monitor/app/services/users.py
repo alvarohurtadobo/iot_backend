@@ -7,8 +7,10 @@ from threading import RLock
 from typing import Dict
 from uuid import UUID
 
+from fastapi import HTTPException, status
+
 from app.api.schemas.users import UserCreate, UserList, UserRead, UserUpdate
-from app.core.security import get_password_hash
+from app.core.security import get_password_hash, validate_password_strength
 
 
 class UserService:
@@ -34,6 +36,14 @@ class UserService:
 
     def create(self, payload: UserCreate) -> UserRead:
         """Create a new user."""
+        # Validate password strength
+        is_valid, error_message = validate_password_strength(payload.password)
+        if not is_valid:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=error_message,
+            )
+        
         now = datetime.now(timezone.utc)
         user = UserRead(
             id=payload.id,
@@ -59,6 +69,13 @@ class UserService:
 
             update_data = payload.model_dump()
             if "password" in update_data:
+                # Validate password strength
+                is_valid, error_message = validate_password_strength(update_data["password"])
+                if not is_valid:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=error_message,
+                    )
                 update_data["password_hash"] = get_password_hash(update_data.pop("password"))
             update_data["updated_at"] = datetime.now(timezone.utc)
 
