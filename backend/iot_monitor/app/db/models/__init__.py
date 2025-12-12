@@ -11,6 +11,8 @@ from app.db.models.sensor_type import SensorType
 from app.db.models.sensor import Sensor
 from app.db.models.time_data import TimeData
 from app.db.models.report import Report
+from app.db.models.revoked_token import RevokedToken
+from app.db.models.login_audit import LoginAudit
 
 __all__ = [
     "Role",
@@ -24,5 +26,7 @@ __all__ = [
     "Sensor",
     "TimeData",
     "Report",
+    "RevokedToken",
+    "LoginAudit",
 ]
 
