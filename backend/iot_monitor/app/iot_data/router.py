@@ -6,11 +6,21 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
+from app.core.config import settings
 from app.db.base import get_db
 from app.db.models.device import Device
 from app.db.models.time_data import TimeData
-from app.iot_data.schemas import DeviceRegisterIn, DeviceRegisterRecord, IoTDataIn, IoTDataRecord
+from app.iot_data.schemas import (
+    DeviceRegisterIn,
+    DeviceRegisterRecord,
+    IoTDataIn,
+    IoTDataRecord,
+    IoTHealthResponse,
+    MQTTHealth,
+)
+from app.mqtt.client import get_mqtt_client
 
 router = APIRouter(prefix="/iot", tags=["iot"])
 
@@ -138,4 +148,41 @@ def update_device_state(
         device_id=payload.device_id,
         timestamp=payload.timestamp,
         state=payload.state,
+    )
+
+
+@router.get("/health", response_model=IoTHealthResponse, status_code=status.HTTP_200_OK)
+def iot_health_check(
+    db: Session = Depends(get_db),
+) -> IoTHealthResponse:
+    """Check the health status of the IoT gateway service."""
+    # Check MQTT status
+    mqtt_client = get_mqtt_client()
+    mqtt_status = "connected" if mqtt_client._running else "disconnected"
+    
+    # Check database connection
+    db_status = "connected"
+    try:
+        db.execute(text("SELECT 1"))
+    except Exception:
+        db_status = "disconnected"
+    
+    # Determine overall status
+    overall_status = "ok"
+    if db_status != "connected":
+        overall_status = "degraded"
+    if settings.mqtt_enabled and mqtt_status != "connected":
+        overall_status = "degraded"
+    
+    return IoTHealthResponse(
+        status=overall_status,
+        service=settings.project_name,
+        version=settings.version,
+        mqtt=MQTTHealth(
+            enabled=settings.mqtt_enabled,
+            status=mqtt_status,
+            broker=f"{settings.mqtt_broker_host}:{settings.mqtt_broker_port}",
+            topic=settings.mqtt_topic,
+        ),
+        database=db_status,
     )
