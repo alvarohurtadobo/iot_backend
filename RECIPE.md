@@ -179,7 +179,12 @@ Backend for centralization of data from multiple IoT devices.
 ### Endpoints
 
 #### IoT -> Gateway
-- POST /v1/iot/data
+- POST /v1/iot/data -> Enviar una lectura de datos de un sensor IoT
+- POST /v1/iot/many -> Enviar múltiples lecturas de datos de sensores IoT (recomendado para dispositivos con alta frecuencia de datos)
+- POST /v1/iot/register -> Registrar el estado inicial de un dispositivo IoT
+- POST /v1/iot/update -> Actualizar el estado de un dispositivo IoT
+- GET /v1/iot/health
+
 
 
 #### Gateway -> Frontend
