@@ -54,3 +54,22 @@ class DeviceRegisterRecord(DeviceRegisterIn):
     """Response representation of device state registration."""
 
     pass
+
+
+class MQTTHealth(BaseModel):
+    """MQTT health status."""
+
+    enabled: bool = Field(..., description="Whether MQTT is enabled")
+    status: str = Field(..., description="MQTT connection status")
+    broker: str = Field(..., description="MQTT broker address")
+    topic: str = Field(..., description="MQTT topic for IoT data")
+
+
+class IoTHealthResponse(BaseModel):
+    """IoT gateway health check response."""
+
+    status: str = Field(..., description="Overall service status")
+    service: str = Field(..., description="Service name")
+    version: str = Field(..., description="Service version")
+    mqtt: MQTTHealth = Field(..., description="MQTT connection status")
+    database: str = Field(default="connected", description="Database connection status")
