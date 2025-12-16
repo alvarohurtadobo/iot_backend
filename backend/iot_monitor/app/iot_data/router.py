@@ -1,4 +1,4 @@
-"""Router dedicated to IoT data ingestion."""
+"""Router dedicated to IoT data ingestion and device registration."""
 
 from __future__ import annotations
 
