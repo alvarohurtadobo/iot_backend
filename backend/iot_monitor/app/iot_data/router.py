@@ -30,7 +30,7 @@ def ingest_iot_data(
     payload: IoTDataIn,
     db: Session = Depends(get_db),
 ) -> IoTDataRecord:
-    """Receive and store a reading from an IoT device."""
+    """Receive and store a reading from an IoT device to the database."""
     time_data = TimeData(
         id=payload.id,
         timestamp=payload.timestamp,
