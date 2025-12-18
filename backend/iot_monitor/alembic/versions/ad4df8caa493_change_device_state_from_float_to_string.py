@@ -1,6 +1,6 @@
 """change_device_state_from_float_to_string
 
-Revision ID: ad4df8caa493
+Revision ID: ad4df8caa4931
 Revises: 001
 Create Date: 2025-11-23 20:24:33.748737
 
