@@ -21,7 +21,7 @@ class Device(Base):
     type_id = Column(UUID(as_uuid=True), ForeignKey("device_types.id"), nullable=False, index=True)
     machine_id = Column(UUID(as_uuid=True), ForeignKey("machines.id"), nullable=False, index=True)
     location = Column(String(500), nullable=True)
-    state = Column(String(20), nullable=True, description="Current state of the device (created, active, disabled, error)")
+    state = Column(String(20), nullable=True, comment="Current state of the device (created, active, disabled, error)")
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
