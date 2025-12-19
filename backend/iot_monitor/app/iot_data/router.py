@@ -171,9 +171,12 @@ def update_device_state(
 
 @router.get("/health", response_model=IoTHealthResponse, status_code=status.HTTP_200_OK)
 def iot_health_check(
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> IoTHealthResponse:
-    """Check the health status of the IoT gateway service."""
+    """Check the health status of the IoT gateway service.
+    
+    Public endpoint - does not require authentication.
+    """
     # Check MQTT status
     mqtt_client = get_mqtt_client()
     mqtt_status = "connected" if mqtt_client._running else "disconnected"

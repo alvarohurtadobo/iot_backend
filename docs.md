@@ -223,8 +223,12 @@ Elimina un rol.
 
 ## 📡 IoT (`/v1/iot`)
 
+**Autenticación requerida:** Sí (excepto `/health`)
+
 ### POST `/v1/iot/data`
 Recibe y almacena una lectura de un dispositivo IoT.
+
+**Autenticación:** Requiere Bearer token
 
 **Request Body:**
 ```json
@@ -241,10 +245,15 @@ Recibe y almacena una lectura de un dispositivo IoT.
 
 **Response:** `201 CREATED` - Objeto `IoTDataRecord`
 
+**Errores:**
+- `401 UNAUTHORIZED`: Token inválido o ausente
+
 ---
 
 ### POST `/v1/iot/many`
 Recibe y almacena múltiples lecturas de dispositivos IoT en una sola operación.
+
+**Autenticación:** Requiere Bearer token
 
 **Request Body:** Array de `IoTDataIn`
 ```json
@@ -264,10 +273,15 @@ Recibe y almacena múltiples lecturas de dispositivos IoT en una sola operación
 
 **Response:** `201 CREATED` - Array de `IoTDataRecord`
 
+**Errores:**
+- `401 UNAUTHORIZED`: Token inválido o ausente
+
 ---
 
 ### POST `/v1/iot/register`
 Registra el estado de un dispositivo IoT.
+
+**Autenticación:** Requiere Bearer token
 
 **Request Body:**
 ```json
@@ -283,6 +297,7 @@ Registra el estado de un dispositivo IoT.
 **Response:** `200 OK` - Objeto `DeviceRegisterRecord`
 
 **Errores:**
+- `401 UNAUTHORIZED`: Token inválido o ausente
 - `404 NOT FOUND`: Dispositivo no encontrado
 
 ---
@@ -290,6 +305,8 @@ Registra el estado de un dispositivo IoT.
 ### POST `/v1/iot/update`
 Actualiza el estado de un dispositivo IoT.
 
+**Autenticación:** Requiere Bearer token
+
 **Request Body:**
 ```json
 {
@@ -304,12 +321,15 @@ Actualiza el estado de un dispositivo IoT.
 **Response:** `200 OK` - Objeto `DeviceRegisterRecord`
 
 **Errores:**
+- `401 UNAUTHORIZED`: Token inválido o ausente
 - `404 NOT FOUND`: Dispositivo no encontrado
 
 ---
 
 ### GET `/v1/iot/health`
 Verifica el estado de salud del servicio IoT gateway.
+
+**Autenticación:** No requerida (endpoint público)
 
 **Response:** `200 OK`
 ```json
