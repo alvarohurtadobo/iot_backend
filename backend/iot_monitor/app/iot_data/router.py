@@ -177,26 +177,57 @@ def register_device_state(
     db: Session = Depends(get_db),
 ) -> DeviceRegisterRecord:
     """Register the state of an IoT device."""
-    # Get the device
-    device = db.query(Device).filter(Device.id == payload.device_id).first()
-    
-    if not device:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Device with id {payload.device_id} not found",
+    try:
+        # Get the device
+        device = db.query(Device).filter(Device.id == payload.device_id).first()
+        
+        if not device:
+            logger.warning(
+                f"Device not found for registration: device_id={payload.device_id}, "
+                f"state={payload.state.value}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Device with id {payload.device_id} not found",
+            )
+        
+        # Update device state (DeviceState enum automatically converts to string)
+        device.state = payload.state.value
+        device.updated_at = payload.timestamp
+        db.commit()
+        db.refresh(device)
+        
+        logger.info(
+            f"Device state registered: device_id={payload.device_id}, "
+            f"state={payload.state.value}, timestamp={payload.timestamp}"
         )
-    
-    # Update device state (DeviceState enum automatically converts to string)
-    device.state = payload.state.value
-    device.updated_at = payload.timestamp
-    db.commit()
-    db.refresh(device)
-    
-    return DeviceRegisterRecord(
-        device_id=payload.device_id,
-        timestamp=payload.timestamp,
-        state=payload.state,
-    )
+        
+        return DeviceRegisterRecord(
+            device_id=payload.device_id,
+            timestamp=payload.timestamp,
+            state=payload.state,
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(
+            f"Database error registering device state: device_id={payload.device_id}, "
+            f"error={str(e)}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al registrar estado del dispositivo",
+        ) from e
+    except Exception as e:
+        db.rollback()
+        logger.exception(
+            f"Unexpected error registering device state: device_id={payload.device_id}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error inesperado al procesar registro de dispositivo",
+        ) from e
 
 
 @router.post("/update", response_model=DeviceRegisterRecord, status_code=status.HTTP_200_OK)
@@ -205,26 +236,59 @@ def update_device_state(
     db: Session = Depends(get_db),
 ) -> DeviceRegisterRecord:
     """Update the state of an IoT device."""
-    # Get the device
-    device = db.query(Device).filter(Device.id == payload.device_id).first()
-    
-    if not device:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Device with id {payload.device_id} not found",
+    try:
+        # Get the device
+        device = db.query(Device).filter(Device.id == payload.device_id).first()
+        
+        if not device:
+            logger.warning(
+                f"Device not found for update: device_id={payload.device_id}, "
+                f"state={payload.state.value}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Device with id {payload.device_id} not found",
+            )
+        
+        old_state = device.state
+        # Update device state (DeviceState enum automatically converts to string)
+        device.state = payload.state.value
+        device.updated_at = payload.timestamp
+        db.commit()
+        db.refresh(device)
+        
+        logger.info(
+            f"Device state updated: device_id={payload.device_id}, "
+            f"old_state={old_state}, new_state={payload.state.value}, "
+            f"timestamp={payload.timestamp}"
         )
-    
-    # Update device state (DeviceState enum automatically converts to string)
-    device.state = payload.state.value
-    device.updated_at = payload.timestamp
-    db.commit()
-    db.refresh(device)
-    
-    return DeviceRegisterRecord(
-        device_id=payload.device_id,
-        timestamp=payload.timestamp,
-        state=payload.state,
-    )
+        
+        return DeviceRegisterRecord(
+            device_id=payload.device_id,
+            timestamp=payload.timestamp,
+            state=payload.state,
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.error(
+            f"Database error updating device state: device_id={payload.device_id}, "
+            f"error={str(e)}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al actualizar estado del dispositivo",
+        ) from e
+    except Exception as e:
+        db.rollback()
+        logger.exception(
+            f"Unexpected error updating device state: device_id={payload.device_id}"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error inesperado al procesar actualización de dispositivo",
+        ) from e
 
 
 @router.get("/health", response_model=IoTHealthResponse, status_code=status.HTTP_200_OK)
@@ -240,7 +304,8 @@ def iot_health_check(
     db_status = "connected"
     try:
         db.execute(text("SELECT 1"))
-    except Exception:
+    except Exception as e:
+        logger.error(f"Database health check failed: {str(e)}")
         db_status = "disconnected"
     
     # Determine overall status

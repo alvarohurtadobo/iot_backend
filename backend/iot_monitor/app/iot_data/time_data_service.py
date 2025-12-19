@@ -43,7 +43,12 @@ def store_time_data(db: Session, message: TimeDataMQTTMessage) -> TimeData:
         return time_data
     except Exception as e:
         db.rollback()
-        logger.error(f"Error storing TimeData: {e}")
+        logger.error(
+            f"Error storing TimeData: sensor_id={message.sensor_id}, "
+            f"device_id={message.device_id}, value={message.value}, "
+            f"error={str(e)}"
+        )
+        logger.exception("Full traceback for TimeData storage error")
         raise
 
 

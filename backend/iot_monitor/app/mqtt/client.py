@@ -109,6 +109,13 @@ class MQTTClient:
         db = SessionLocal()
         try:
             store_time_data(db, mqtt_message)
+        except Exception as e:
+            logger.error(
+                f"Error storing MQTT message in database: sensor_id={mqtt_message.sensor_id}, "
+                f"device_id={mqtt_message.device_id}, error={str(e)}"
+            )
+            logger.exception("Full traceback for MQTT database storage error")
+            raise
         finally:
             db.close()
 
