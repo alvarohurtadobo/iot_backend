@@ -2,18 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Annotated, List
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from app.api.dependencies.auth import get_current_user
 from app.core.config import settings
 from app.db.base import get_db
 from app.db.models.device import Device
 from app.db.models.time_data import TimeData
-from app.db.models.user import User
 from app.iot_data.schemas import (
     DeviceRegisterIn,
     DeviceRegisterRecord,
@@ -30,13 +28,9 @@ router = APIRouter(prefix="/iot", tags=["iot"])
 @router.post("/data", response_model=IoTDataRecord, status_code=status.HTTP_201_CREATED)
 def ingest_iot_data(
     payload: IoTDataIn,
-    db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    db: Session = Depends(get_db),
 ) -> IoTDataRecord:
-    """Receive and store a reading from an IoT device to the database.
-    
-    Requires authentication via Bearer token.
-    """
+    """Receive and store a reading from an IoT device to the database."""
     time_data = TimeData(
         id=payload.id,
         timestamp=payload.timestamp,
@@ -64,13 +58,9 @@ def ingest_iot_data(
 @router.post("/many", response_model=List[IoTDataRecord], status_code=status.HTTP_201_CREATED)
 def ingest_many_iot_data(
     payload: List[IoTDataIn],
-    db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    db: Session = Depends(get_db),
 ) -> List[IoTDataRecord]:
-    """Receive and store multiple readings from IoT devices.
-    
-    Requires authentication via Bearer token.
-    """
+    """Receive and store multiple readings from IoT devices."""
     time_data_list = [
         TimeData(
             id=item.id,
@@ -108,13 +98,9 @@ def ingest_many_iot_data(
 @router.post("/register", response_model=DeviceRegisterRecord, status_code=status.HTTP_200_OK)
 def register_device_state(
     payload: DeviceRegisterIn,
-    db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    db: Session = Depends(get_db),
 ) -> DeviceRegisterRecord:
-    """Register the state of an IoT device.
-    
-    Requires authentication via Bearer token.
-    """
+    """Register the state of an IoT device."""
     # Get the device
     device = db.query(Device).filter(Device.id == payload.device_id).first()
     
@@ -140,13 +126,9 @@ def register_device_state(
 @router.post("/update", response_model=DeviceRegisterRecord, status_code=status.HTTP_200_OK)
 def update_device_state(
     payload: DeviceRegisterIn,
-    db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    db: Session = Depends(get_db),
 ) -> DeviceRegisterRecord:
-    """Update the state of an IoT device.
-    
-    Requires authentication via Bearer token.
-    """
+    """Update the state of an IoT device."""
     # Get the device
     device = db.query(Device).filter(Device.id == payload.device_id).first()
     
@@ -171,12 +153,9 @@ def update_device_state(
 
 @router.get("/health", response_model=IoTHealthResponse, status_code=status.HTTP_200_OK)
 def iot_health_check(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session = Depends(get_db),
 ) -> IoTHealthResponse:
-    """Check the health status of the IoT gateway service.
-    
-    Public endpoint - does not require authentication.
-    """
+    """Check the health status of the IoT gateway service."""
     # Check MQTT status
     mqtt_client = get_mqtt_client()
     mqtt_status = "connected" if mqtt_client._running else "disconnected"
