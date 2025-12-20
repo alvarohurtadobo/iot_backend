@@ -81,12 +81,23 @@ def update_user(
 ) -> UserRead:
     """Update user information."""
     try:
-        return service.update(user_id, payload)
+        user = service.update(user_id, payload)
+        logger.info(f"User updated: user_id={user_id}, email={user.email}")
+        return user
     except KeyError as exc:
+        logger.warning(f"User not found for update: user_id={user_id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         ) from exc
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error updating user: user_id={user_id}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al actualizar usuario",
+        ) from e
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -94,22 +105,38 @@ def delete_user(user_id: UUID, service: UserService = Depends(get_user_service))
     """Logically delete a user."""
     try:
         service.delete(user_id)
+        logger.info(f"User deleted (soft delete): user_id={user_id}")
     except KeyError as exc:
+        logger.warning(f"User not found for deletion: user_id={user_id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         ) from exc
+    except Exception as e:
+        logger.exception(f"Error deleting user: user_id={user_id}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al eliminar usuario",
+        ) from e
 
 
 @router.get("/me", response_model=UserPublic)
 def get_current_user_info(current_user: User = Depends(get_current_user)) -> UserPublic:
     """Get information about the current authenticated user."""
-    return UserPublic(
-        id=current_user.id,
-        first_name=current_user.first_name,
-        last_name=current_user.last_name,
-        email=current_user.email,
-        role_id=current_user.role_id,
-        created_at=current_user.created_at,
-        updated_at=current_user.updated_at,
-    )
+    try:
+        logger.debug(f"Current user info requested: user_id={current_user.id}")
+        return UserPublic(
+            id=current_user.id,
+            first_name=current_user.first_name,
+            last_name=current_user.last_name,
+            email=current_user.email,
+            role_id=current_user.role_id,
+            created_at=current_user.created_at,
+            updated_at=current_user.updated_at,
+        )
+    except Exception as e:
+        logger.exception(f"Error getting current user info: user_id={current_user.id}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al obtener información del usuario",
+        ) from e
