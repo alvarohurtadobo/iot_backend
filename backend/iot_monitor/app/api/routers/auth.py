@@ -116,6 +116,10 @@ def login(
     
     # Log attempt even if user doesn't exist (security best practice)
     if not user:
+        logger.warning(
+            f"Login attempt failed - user not found: email={login_data.email}, "
+            f"ip={ip_address}"
+        )
         _log_login_attempt(
             db=db,
             user_id=None,
@@ -133,6 +137,10 @@ def login(
     
     # Check if user is deleted
     if user.deleted_at is not None:
+        logger.warning(
+            f"Login attempt failed - account disabled: user_id={user.id}, "
+            f"email={login_data.email}, ip={ip_address}"
+        )
         _log_login_attempt(
             db=db,
             user_id=user.id,
@@ -150,6 +158,11 @@ def login(
     
     # Check if account is locked
     if _is_account_locked(user):
+        logger.warning(
+            f"Login attempt failed - account locked: user_id={user.id}, "
+            f"email={login_data.email}, ip={ip_address}, "
+            f"locked_until={user.locked_until}"
+        )
         _log_login_attempt(
             db=db,
             user_id=user.id,
@@ -168,6 +181,11 @@ def login(
     # Verify password
     if not verify_password(login_data.password, user.password):
         _increment_failed_attempts(user, db)
+        logger.warning(
+            f"Login attempt failed - incorrect password: user_id={user.id}, "
+            f"email={login_data.email}, ip={ip_address}, "
+            f"failed_attempts={user.failed_login_attempts}"
+        )
         _log_login_attempt(
             db=db,
             user_id=user.id,
