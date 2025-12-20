@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.api.schemas.auth import LoginRequest, RefreshTokenRequest, Token
@@ -21,6 +23,8 @@ from app.db.base import get_db
 from app.db.models.login_audit import LoginAudit
 from app.db.models.revoked_token import RevokedToken
 from app.db.models.user import User
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
