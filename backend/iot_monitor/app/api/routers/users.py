@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -11,25 +12,45 @@ from app.api.schemas.users import UserCreate, UserList, UserPublic, UserRead, Us
 from app.db.models.user import User
 from app.services.users import UserService, get_user_service
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.get("/", response_model=UserList)
 def list_users(service: UserService = Depends(get_user_service)) -> UserList:
     """List active users."""
-    return service.list()
+    try:
+        result = service.list()
+        logger.info(f"Listed users: total={result.total}")
+        return result
+    except Exception as e:
+        logger.exception("Error listing users")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al listar usuarios",
+        ) from e
 
 
 @router.get("/{user_id}", response_model=UserRead)
 def get_user(user_id: UUID, service: UserService = Depends(get_user_service)) -> UserRead:
     """Get a user by identifier."""
     try:
-        return service.get(user_id)
+        user = service.get(user_id)
+        logger.info(f"User retrieved: user_id={user_id}")
+        return user
     except KeyError as exc:
+        logger.warning(f"User not found: user_id={user_id}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         ) from exc
+    except Exception as e:
+        logger.exception(f"Error retrieving user: user_id={user_id}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al obtener usuario",
+        ) from e
 
 
 @router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
@@ -37,7 +58,21 @@ def create_user(
     payload: UserCreate, service: UserService = Depends(get_user_service)
 ) -> UserRead:
     """Create a new user."""
-    return service.create(payload)
+    try:
+        user = service.create(payload)
+        logger.info(
+            f"User created: user_id={user.id}, email={payload.email}, "
+            f"role_id={payload.role_id}"
+        )
+        return user
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Error creating user: email={payload.email}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al crear usuario",
+        ) from e
 
 
 @router.put("/{user_id}", response_model=UserRead)

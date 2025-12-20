@@ -212,6 +212,11 @@ def login(
         success=True,
     )
     
+    logger.info(
+        f"Login successful: user_id={user.id}, email={login_data.email}, "
+        f"ip={ip_address}"
+    )
+    
     # Generate JWT IDs for token revocation
     access_jti = str(uuid.uuid4())
     refresh_jti = str(uuid.uuid4())
@@ -254,6 +259,7 @@ def refresh_token(
     try:
         payload = decode_refresh_token(refresh_data.refresh_token)
     except ValueError as exc:
+        logger.warning(f"Token refresh failed - invalid token: {str(exc)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token de actualización inválido",
@@ -269,6 +275,7 @@ def refresh_token(
             .first()
         )
         if revoked:
+            logger.warning(f"Token refresh failed - revoked token: jti={jti}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token de actualización revocado",
@@ -295,6 +302,9 @@ def refresh_token(
     
     user = db.query(User).filter(User.id == user_id).first()
     if not user or user.deleted_at is not None:
+        logger.warning(
+            f"Token refresh failed - user not found or disabled: user_id={user_id}"
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario no encontrado o deshabilitado",
@@ -328,14 +338,20 @@ def refresh_token(
     
     # Revoke old refresh token
     if jti:
-        expires_at = datetime.fromtimestamp(payload.get("exp", 0), tz=timezone.utc)
-        revoked_token = RevokedToken(
-            jti=jti,
-            token=refresh_data.refresh_token,
-            expires_at=expires_at,
-        )
-        db.add(revoked_token)
-        db.commit()
+        try:
+            expires_at = datetime.fromtimestamp(payload.get("exp", 0), tz=timezone.utc)
+            revoked_token = RevokedToken(
+                jti=jti,
+                token=refresh_data.refresh_token,
+                expires_at=expires_at,
+            )
+            db.add(revoked_token)
+            db.commit()
+        except SQLAlchemyError as e:
+            logger.error(f"Error revoking old token: jti={jti}, error={str(e)}")
+            db.rollback()
+    
+    logger.info(f"Token refreshed successfully: user_id={user.id}, email={user.email}")
     
     return Token(
         access_token=access_token,
@@ -354,25 +370,35 @@ def logout(
         payload = decode_refresh_token(refresh_data.refresh_token)
     except ValueError:
         # Token already invalid, consider it logged out
+        logger.debug("Logout attempted with invalid token (already logged out)")
         return {"message": "Sesión cerrada exitosamente"}
     
     jti = payload.get("jti")
+    user_id = payload.get("sub")
+    
     if jti:
-        # Check if already revoked
-        existing = (
-            db.query(RevokedToken)
-            .filter(RevokedToken.jti == jti)
-            .first()
-        )
-        if not existing:
-            expires_at = datetime.fromtimestamp(payload.get("exp", 0), tz=timezone.utc)
-            revoked_token = RevokedToken(
-                jti=jti,
-                token=refresh_data.refresh_token,
-                expires_at=expires_at,
+        try:
+            # Check if already revoked
+            existing = (
+                db.query(RevokedToken)
+                .filter(RevokedToken.jti == jti)
+                .first()
             )
-            db.add(revoked_token)
-            db.commit()
+            if not existing:
+                expires_at = datetime.fromtimestamp(payload.get("exp", 0), tz=timezone.utc)
+                revoked_token = RevokedToken(
+                    jti=jti,
+                    token=refresh_data.refresh_token,
+                    expires_at=expires_at,
+                )
+                db.add(revoked_token)
+                db.commit()
+                logger.info(f"User logged out successfully: user_id={user_id}, jti={jti}")
+            else:
+                logger.debug(f"Token already revoked: jti={jti}")
+        except SQLAlchemyError as e:
+            logger.error(f"Error during logout: jti={jti}, error={str(e)}")
+            db.rollback()
     
     return {"message": "Sesión cerrada exitosamente"}
 
