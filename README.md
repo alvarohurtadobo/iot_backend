@@ -35,8 +35,10 @@ Backend para centralización de datos de múltiples dispositivos IoT. Plataforma
 │  └─────────────────────────────────────────┘ │
 │  ┌─────────────────────────────────────────┐ │
 │  │  REST API (FastAPI)                     │ │
-│  │  - /v1/dashboard/*                      │ │
-│  │  - /v1/iot/*                            │ │
+│  │  - /v1/auth/* (Autenticación JWT)       │ │
+│  │  - /v1/users/* (Gestión de usuarios)    │ │
+│  │  - /v1/roles/* (Gestión de roles)       │ │
+│  │  - /v1/iot/* (Datos IoT)                │ │
 │  └─────────────────────────────────────────┘ │
 └────────┬───────────────────────────────────────┘
          │
@@ -64,6 +66,13 @@ Backend para centralización de datos de múltiples dispositivos IoT. Plataforma
 2. **API REST**:
    - El dashboard y aplicaciones móviles consumen datos mediante endpoints REST
    - Los datos se consultan desde PostgreSQL usando SQLAlchemy ORM
+   - Autenticación JWT protege los endpoints sensibles
+
+3. **Seguridad**:
+   - Autenticación JWT (access y refresh tokens)
+   - Rate limiting y bloqueo de cuenta
+   - Auditoría de intentos de login
+   - Validación de contraseñas fuertes
 
 ## 🛠️ Stack Tecnológico
 
@@ -75,6 +84,8 @@ Backend para centralización de datos de múltiples dispositivos IoT. Plataforma
 - **Alembic** - Migraciones de base de datos
 - **Pydantic** - Validación de datos y configuración
 - **paho-mqtt** - Cliente MQTT para recepción de datos IoT
+- **python-jose** - JWT para autenticación
+- **passlib** - Hash de contraseñas (bcrypt)
 - **uv** - Gestor de dependencias y entornos virtuales
 - **Uvicorn** - Servidor ASGI de alto rendimiento
 
@@ -100,13 +111,25 @@ iot_backend/
 │   │   ├── app/
 │   │   │   ├── api/             # Endpoints REST
 │   │   │   │   ├── routers/    # Routers de FastAPI
-│   │   │   │   └── schemas/    # Schemas Pydantic para API
+│   │   │   │   │   ├── auth.py    # Autenticación
+│   │   │   │   │   ├── users.py   # Usuarios
+│   │   │   │   │   └── roles.py   # Roles
+│   │   │   │   ├── schemas/    # Schemas Pydantic para API
+│   │   │   │   └── dependencies/  # Dependencias (auth, etc.)
 │   │   │   ├── core/           # Configuración central
-│   │   │   │   └── config.py  # Settings y variables de entorno
+│   │   │   │   ├── config.py  # Settings y variables de entorno
+│   │   │   │   ├── security.py   # JWT, hashing
+│   │   │   │   └── rate_limit.py # Rate limiting
 │   │   │   ├── db/             # Base de datos
 │   │   │   ├── models/         # Modelos SQLAlchemy
 │   │   │   └── base.py         # Configuración SQLAlchemy
+│   │   │   ├── services/       # Servicios de negocio
+│   │   │   │   ├── users.py   # Servicio de usuarios
+│   │   │   │   └── roles.py   # Servicio de roles
 │   │   │   ├── iot_data/       # Módulo de datos IoT
+│   │   │   │   ├── router.py     # Endpoints IoT
+│   │   │   │   ├── schemas.py    # Schemas IoT
+│   │   │   │   └── time_data_service.py  # Servicio TimeData
 │   │   │   ├── mqtt/           # Cliente MQTT
 │   │   │   │   ├── client.py  # Cliente paho-mqtt
 │   │   │   │   └── schemas.py # Schemas para mensajes MQTT
@@ -172,7 +195,10 @@ IOT_MONITOR_MQTT_BROKER_HOST=localhost
 IOT_MONITOR_MQTT_BROKER_PORT=1883
 IOT_MONITOR_MQTT_TOPIC=iot/data
 IOT_MONITOR_MQTT_ENABLED=true
+IOT_MONITOR_SECRET_KEY=tu-secret-key-seguro-aqui-cambiar-en-produccion
 ```
+
+**Nota:** Cambiar `IOT_MONITOR_SECRET_KEY` en producción. Ver `app/core/config.py` para todas las variables disponibles.
 
 5. **Iniciar PostgreSQL** (si no usas Docker):
 ```bash
@@ -301,8 +327,10 @@ El proyecto incluye los siguientes modelos (entidades):
 - **Sensor** - Sensores
 - **TimeData** - Datos temporales de sensores
 - **Report** - Reportes generados
+- **LoginAudit** - Auditoría de intentos de login
+- **RevokedToken** - Tokens JWT revocados
 
-Ver `backend/specs/00_contracts.md` para detalles completos de cada entidad.
+Ver `db.md` para documentación completa de la base de datos y `backend/specs/00_contracts.md` para detalles de cada entidad.
 
 ## 📡 MQTT
 
@@ -351,6 +379,10 @@ mosquitto_pub -h localhost -p 1883 -t iot/data -m '{
 }'
 ```
 
+### Conectar Dispositivos ESP32
+
+Para conectar dispositivos ESP32 por MQTT, consulta la guía completa en `connect.md`.
+
 ### Estado del Cliente MQTT
 
 Puedes verificar el estado del cliente MQTT mediante el endpoint `/health`:
@@ -384,39 +416,72 @@ http://localhost:8000/v1
 
 ### Autenticación
 
-Actualmente la API no requiere autenticación. Se recomienda implementar autenticación JWT en producción.
+La API utiliza **autenticación JWT** (JSON Web Tokens) para proteger los endpoints.
+
+**Flujo de Autenticación:**
+
+1. **Login**: `POST /v1/auth/login` - Obtener tokens de acceso y actualización
+2. **Usar Token**: Incluir `Authorization: Bearer <access_token>` en headers
+3. **Refresh Token**: `POST /v1/auth/refresh` - Renovar access_token cuando expire
+4. **Logout**: `POST /v1/auth/logout` - Revocar refresh_token
+
+**Características de Seguridad:**
+- Tokens JWT con expiración (access: 30 min, refresh: 7 días)
+- Rate limiting en login (5 intentos por minuto)
+- Bloqueo de cuenta después de múltiples intentos fallidos (5 intentos = 30 min bloqueado)
+- Auditoría de intentos de login
+- Revocación de tokens al cerrar sesión
+- Validación de contraseñas fuertes
 
 ### Formato de Respuesta
 
 Todas las respuestas JSON siguen el formato estándar de FastAPI.
 
+Ver `docs.md` y `endpoint.md` para documentación completa de endpoints.
+
 ## 📋 Endpoints Disponibles
 
-### Health Check
+### Endpoints Raíz
 
+- `GET /` - Mensaje de bienvenida
 - `GET /health` - Estado del servicio y cliente MQTT
 
-### Roles
+### Autenticación (`/v1/auth`)
 
-- `GET /v1/roles/` - Listar roles
-- `POST /v1/roles/` - Crear rol
+**Nota:** Estos endpoints no requieren autenticación.
+
+- `POST /v1/auth/login` - Iniciar sesión y obtener tokens JWT
+- `POST /v1/auth/refresh` - Renovar access token
+- `POST /v1/auth/logout` - Cerrar sesión (revocar token)
+
+### Roles (`/v1/roles`)
+
+- `GET /v1/roles/` - Listar todos los roles
+- `POST /v1/roles/` - Crear nuevo rol
 - `GET /v1/roles/{role_id}` - Obtener rol por ID
 - `PUT /v1/roles/{role_id}` - Actualizar rol
 - `DELETE /v1/roles/{role_id}` - Eliminar rol
 
-### Usuarios
+### Usuarios (`/v1/users`)
 
-- `GET /v1/users/` - Listar usuarios
-- `POST /v1/users/` - Crear usuario
+**Autenticación requerida** (excepto donde se indique)
+
+- `GET /v1/users/` - Listar usuarios activos
+- `POST /v1/users/` - Crear nuevo usuario
 - `GET /v1/users/{user_id}` - Obtener usuario por ID
 - `PUT /v1/users/{user_id}` - Actualizar usuario
 - `DELETE /v1/users/{user_id}` - Eliminar usuario (soft delete)
+- `GET /v1/users/me` - Obtener información del usuario actual (autenticado)
 
-### IoT Data
+### IoT (`/v1/iot`)
 
-- `POST /v1/iot/data` - Enviar datos IoT (alternativa a MQTT)
+- `POST /v1/iot/data` - Enviar datos IoT individuales (alternativa a MQTT)
+- `POST /v1/iot/many` - Enviar múltiples datos IoT en lote
+- `POST /v1/iot/register` - Registrar estado de dispositivo IoT
+- `POST /v1/iot/update` - Actualizar estado de dispositivo IoT
+- `GET /v1/iot/health` - Health check del servicio IoT (estado de MQTT y DB)
 
-Ver `backend/specs/00_contracts.md` para la especificación completa de endpoints del dashboard.
+Ver `docs.md` para documentación detallada de todos los endpoints y `endpoint.md` para casos de uso del panel de administración.
 
 ## ⚛️ Integración con Frontend React
 
@@ -433,10 +498,21 @@ export const API_CONFIG = {
 
 export const API_ENDPOINTS = {
   health: '/health',
+  auth: {
+    login: '/v1/auth/login',
+    refresh: '/v1/auth/refresh',
+    logout: '/v1/auth/logout',
+  },
   roles: '/v1/roles',
   users: '/v1/users',
-  iotData: '/v1/iot/data',
-  // Agregar más endpoints según necesidad
+  usersMe: '/v1/users/me',
+  iot: {
+    data: '/v1/iot/data',
+    many: '/v1/iot/many',
+    register: '/v1/iot/register',
+    update: '/v1/iot/update',
+    health: '/v1/iot/health',
+  },
 };
 ```
 
@@ -458,10 +534,10 @@ class ApiService {
       },
     });
 
-    // Interceptor para agregar token de autenticación (cuando se implemente)
+    // Interceptor para agregar token de autenticación
     this.client.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('access_token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -470,14 +546,39 @@ class ApiService {
       (error) => Promise.reject(error)
     );
 
-    // Interceptor para manejar errores
+    // Interceptor para manejar errores y refresh token
     this.client.interceptors.response.use(
       (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          // Redirigir a login
-          window.location.href = '/login';
+      async (error) => {
+        const originalRequest = error.config;
+        
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+          
+          try {
+            // Intentar refrescar token
+            const refreshToken = localStorage.getItem('refresh_token');
+            const response = await axios.post(
+              `${API_CONFIG.baseURL}${API_ENDPOINTS.auth.refresh}`,
+              { refresh_token: refreshToken }
+            );
+            
+            const { access_token, refresh_token: newRefreshToken } = response.data;
+            localStorage.setItem('access_token', access_token);
+            localStorage.setItem('refresh_token', newRefreshToken);
+            
+            // Reintentar request original
+            originalRequest.headers.Authorization = `Bearer ${access_token}`;
+            return this.client(originalRequest);
+          } catch (refreshError) {
+            // Si falla refresh, redirigir a login
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/login';
+            return Promise.reject(refreshError);
+          }
         }
+        
         return Promise.reject(error);
       }
     );
@@ -511,9 +612,41 @@ class ApiService {
     return response.data;
   }
 
+  // Autenticación
+  async login(email: string, password: string) {
+    const response = await this.client.post(API_ENDPOINTS.auth.login, {
+      email,
+      password,
+    });
+    const { access_token, refresh_token } = response.data;
+    localStorage.setItem('access_token', access_token);
+    localStorage.setItem('refresh_token', refresh_token);
+    return response.data;
+  }
+
+  async logout() {
+    const refreshToken = localStorage.getItem('refresh_token');
+    await this.client.post(API_ENDPOINTS.auth.logout, {
+      refresh_token: refreshToken,
+    });
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+  }
+
+  // Usuario actual
+  async getCurrentUser() {
+    const response = await this.client.get(API_ENDPOINTS.usersMe);
+    return response.data;
+  }
+
   // IoT Data
   async sendIoTData(data: any) {
-    const response = await this.client.post(API_ENDPOINTS.iotData, data);
+    const response = await this.client.post(API_ENDPOINTS.iot.data, data);
+    return response.data;
+  }
+
+  async sendBulkIoTData(data: any[]) {
+    const response = await this.client.post(API_ENDPOINTS.iot.many, data);
     return response.data;
   }
 }
@@ -624,13 +757,77 @@ uv run pytest
 
 # Con cobertura
 uv run pytest --cov=app tests/
+
+# Ejecutar tests específicos
+uv run pytest tests/test_iot_router.py
 ```
 
+## 🔍 Características Implementadas
+
+### Seguridad
+- ✅ Autenticación JWT (access y refresh tokens)
+- ✅ Hash de contraseñas con bcrypt
+- ✅ Validación de contraseñas fuertes
+- ✅ Rate limiting en login
+- ✅ Bloqueo de cuenta por intentos fallidos
+- ✅ Auditoría de intentos de login
+- ✅ Revocación de tokens
+
+### Logging
+- ✅ Logging estructurado en todos los endpoints
+- ✅ Logging de operaciones exitosas
+- ✅ Logging de errores con contexto
+- ✅ Traceback completo para debugging
+
+### Base de Datos
+- ✅ Migraciones con Alembic
+- ✅ Soft delete en entidades principales
+- ✅ Timestamps automáticos (created_at, updated_at)
+- ✅ Relaciones entre entidades bien definidas
+
+### IoT
+- ✅ Recepción de datos por MQTT
+- ✅ Recepción de datos por HTTP REST
+- ✅ Validación de datos con Pydantic
+- ✅ Almacenamiento automático en PostgreSQL
+- ✅ Health check del servicio IoT
+
 ## 📚 Documentación Adicional
+
+### Documentación del Proyecto
+
+- **`docs.md`** - Documentación resumida de todos los endpoints
+- **`endpoint.md`** - Guía de endpoints para panel de administración (casos de uso)
+- **`db.md`** - Documentación completa de la base de datos (tablas, relaciones, campos)
+- **`connect.md`** - Guía para conectar dispositivos ESP32 por MQTT
+- **`architecture.md`** - Arquitectura del sistema y evolución futura
+- **`MEJORAS.md`** - Sugerencias de mejoras pequeñas para el código
+- **`AUTH_ENDPOINTS.md`** - Resumen técnico de endpoints de autenticación
+
+### Documentación Técnica
 
 - **Contratos y Especificaciones**: `backend/specs/00_contracts.md`
 - **Guía de Setup**: `backend/specs/01_setup.md`
 - **Documentación FastAPI**: `http://localhost:8000/docs` (cuando el servidor está corriendo)
+- **Documentación ReDoc**: `http://localhost:8000/redoc` (documentación alternativa)
+
+### Comandos Útiles (Makefile)
+
+Si tienes `make` instalado, puedes usar:
+
+```bash
+cd backend/iot_monitor
+
+make start       # Iniciar servicios (Docker)
+make stop        # Detener servicios
+make restart     # Reiniciar servicios
+make logs        # Ver logs en tiempo real
+make build       # Construir imágenes Docker
+make clean       # Limpiar contenedores y volúmenes
+make help        # Mostrar ayuda
+```
+
+Ver `backend/iot_monitor/Makefile` para todos los comandos disponibles.
 
 ## 🤝 Contribución
 
@@ -650,5 +847,29 @@ uv run pytest --cov=app tests/
 
 ---
 
-**Nota**: Este proyecto está en desarrollo activo. Algunas funcionalidades pueden estar en construcción.
+## 🚀 Ejecución Rápida
+
+### Opción 1: Con Docker (Recomendado)
+
+```bash
+cd backend/iot_monitor
+make start
+```
+
+### Opción 2: Local
+
+```bash
+cd backend/iot_monitor
+uv venv --python 3.11
+source .venv/bin/activate
+uv sync
+uv run alembic upgrade head
+uv run uvicorn app.main:app --reload
+```
+
+El servidor estará disponible en `http://localhost:8000`
+
+---
+
+**Nota**: Este proyecto está en desarrollo activo. Consulta la documentación en `docs.md`, `endpoint.md` y `architecture.md` para más detalles.
 
