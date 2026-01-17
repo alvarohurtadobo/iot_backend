@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IoT Backend - Estado</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        margin: 0;
+        background: #0f172a;
+        color: #e2e8f0;
+        display: grid;
+        place-items: center;
+        min-height: 100vh;
+      }
+      .card {
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 12px;
+        padding: 24px 28px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        text-align: center;
+        max-width: 420px;
+      }
+      .status {
+        color: #22c55e;
+        font-weight: 600;
+        margin-top: 8px;
+      }
+      .subtitle {
+        color: #94a3b8;
+        margin-top: 6px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.production.min.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+    ></script>
+    <script>
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      const App = () =>
+        React.createElement(
+          "div",
+          { className: "card" },
+          React.createElement("h1", null, "IoT Backend"),
+          React.createElement("div", { className: "status" }, "✅ El sistema está funcionando"),
+          React.createElement(
+            "div",
+            { className: "subtitle" },
+            "Frontend mínimo en React"
+          )
+        );
+      root.render(React.createElement(App));
+    </script>
+  </body>
+</html>
