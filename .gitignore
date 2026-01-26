@@ -174,3 +174,19 @@ poetry.toml
 pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python
+
+### Frontend (React) ###
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.parcel-cache/
+frontend/.vite/
+frontend/.env
+frontend/.env.*
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+### OS ###
+.DS_Store
