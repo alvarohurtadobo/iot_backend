@@ -1,4 +1,7 @@
+import pytest
 from fastapi.testclient import TestClient
+
+pytest.importorskip("jose")
 
 from app.core.config import settings
 from app.main import app
