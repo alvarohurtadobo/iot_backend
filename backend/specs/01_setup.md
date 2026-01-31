@@ -5,6 +5,7 @@ Create a basic FastAPI project for an IoT data centralization platform called io
 Create the folder structure:
 ```
 iot_monitor/
+
 ├── app/
 │   ├── __init__.py
 │   ├── main.py
