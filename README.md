@@ -141,8 +141,7 @@ iot_backend/
 │   └── specs/                   # Especificaciones del proyecto
 │       ├── 00_contracts.md     # Contratos de entidades y endpoints
 │       └── 01_setup.md         # Guía de configuración
-├── frontend/                    # Frontend React (pendiente)
-└── mobile/                      # Aplicaciones móviles (pendiente)
+└── frontend/                    # Frontend React (pendiente)
 ```
 
 ## 🚀 Instalación
@@ -381,7 +380,7 @@ mosquitto_pub -h localhost -p 1883 -t iot/data -m '{
 
 ### Conectar Dispositivos ESP32
 
-Para conectar dispositivos ESP32 por MQTT, consulta la guía completa en `connect.md`.
+Guía pendiente de documentar (no hay archivo `connect.md` en este repositorio).
 
 ### Estado del Cliente MQTT
 
@@ -799,15 +798,12 @@ uv run pytest tests/test_iot_router.py
 - **`docs.md`** - Documentación resumida de todos los endpoints
 - **`endpoint.md`** - Guía de endpoints para panel de administración (casos de uso)
 - **`db.md`** - Documentación completa de la base de datos (tablas, relaciones, campos)
-- **`connect.md`** - Guía para conectar dispositivos ESP32 por MQTT
-- **`architecture.md`** - Arquitectura del sistema y evolución futura
 - **`MEJORAS.md`** - Sugerencias de mejoras pequeñas para el código
-- **`AUTH_ENDPOINTS.md`** - Resumen técnico de endpoints de autenticación
+- **`backend/specs/00_contracts.md`** - Contratos de entidades y endpoints
+- **`backend/specs/01_setup.md`** - Guía de configuración
 
 ### Documentación Técnica
 
-- **Contratos y Especificaciones**: `backend/specs/00_contracts.md`
-- **Guía de Setup**: `backend/specs/01_setup.md`
 - **Documentación FastAPI**: `http://localhost:8000/docs` (cuando el servidor está corriendo)
 - **Documentación ReDoc**: `http://localhost:8000/redoc` (documentación alternativa)
 

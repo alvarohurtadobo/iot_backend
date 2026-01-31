@@ -36,6 +36,11 @@ Inicia sesión y obtiene tokens de acceso y actualización.
 - Auditoría de intentos de inicio de sesión
 - Validación de cuenta bloqueada o deshabilitada
 
+**Errores comunes:**
+- `401 UNAUTHORIZED`: Credenciales inválidas o cuenta deshabilitada
+- `423 LOCKED`: Cuenta bloqueada temporalmente
+- `429 TOO_MANY_REQUESTS`: Rate limit excedido
+
 ---
 
 ### POST `/v1/auth/refresh`
@@ -59,6 +64,9 @@ Refresca el token de acceso usando el token de actualización.
 
 **Nota:** El token de actualización anterior se revoca automáticamente.
 
+**Errores comunes:**
+- `401 UNAUTHORIZED`: Token inválido, revocado o usuario deshabilitado
+
 ---
 
 ### POST `/v1/auth/logout`
@@ -78,11 +86,13 @@ Cierra sesión revocando el token de actualización.
 }
 ```
 
+**Nota:** Si el token ya es inválido o fue revocado, el endpoint igualmente responde `200 OK`.
+
 ---
 
 ## 👥 Usuarios (`/v1/users`)
 
-**Autenticación requerida:** Sí (excepto donde se indique)
+**Autenticación requerida:** No (solo `/v1/users/me` requiere access token)
 
 ### GET `/v1/users/`
 Lista todos los usuarios activos.
@@ -154,9 +164,14 @@ Obtiene la información del usuario autenticado actualmente.
 
 **Response:** `200 OK` - Objeto `UserPublic`
 
+**Errores:**
+- `401 UNAUTHORIZED`: Token inválido, revocado o usuario deshabilitado
+
 ---
 
 ## 🎭 Roles (`/v1/roles`)
+
+**Autenticación requerida:** No
 
 ### GET `/v1/roles/`
 Lista todos los roles disponibles.

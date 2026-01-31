@@ -2,9 +2,38 @@
 
 ## Project Description
 
-IoT Monitor is a IoT Platform that gathers the information of sensors installed in several machines.
-IoT information is introduced with the v1/iot/ endpoints
-The dashboard is served with the v1/dashboard endpoints
+IoT Monitor is an IoT platform that gathers sensor data from multiple machines.
+IoT information is ingested through the `/v1/iot` endpoints.
+Administration tasks are currently exposed through `/v1/auth`, `/v1/users`, and `/v1/roles`.
+
+## API Surface (Current)
+
+- **Root**
+  - `GET /` – Welcome message
+  - `GET /health` – Basic health check (includes MQTT status)
+- **Auth**
+  - `POST /v1/auth/login`
+  - `POST /v1/auth/refresh`
+  - `POST /v1/auth/logout`
+- **Users**
+  - `GET /v1/users/`
+  - `POST /v1/users/`
+  - `GET /v1/users/{user_id}`
+  - `PUT /v1/users/{user_id}`
+  - `DELETE /v1/users/{user_id}`
+  - `GET /v1/users/me` (requires access token)
+- **Roles**
+  - `GET /v1/roles/`
+  - `POST /v1/roles/`
+  - `GET /v1/roles/{role_id}`
+  - `PUT /v1/roles/{role_id}`
+  - `DELETE /v1/roles/{role_id}`
+- **IoT**
+  - `POST /v1/iot/data`
+  - `POST /v1/iot/many`
+  - `POST /v1/iot/register`
+  - `POST /v1/iot/update`
+  - `GET /v1/iot/health`
 
 ## Tech Stack 
 ### Backend

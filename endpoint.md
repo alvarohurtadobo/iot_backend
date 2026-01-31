@@ -16,6 +16,12 @@
 
 ---
 
+## Nota sobre autenticación
+
+Actualmente, los endpoints de `/v1/users` y `/v1/roles` **no están protegidos** por el backend. 
+Los headers `Authorization: Bearer <access_token>` que se muestran a continuación representan el flujo recomendado si se habilita protección en esos endpoints.  
+El endpoint `/v1/users/me` **sí** requiere access token.
+
 ## Autenticación y Sesión
 
 ### Caso de Uso: Login de Usuario
@@ -789,5 +795,5 @@ Los siguientes endpoints están en desarrollo o planeados:
 
 ---
 
-**Última actualización:** 2024  
+**Última actualización:** 2026  
 **Mantenido por:** Equipo iotMonitor
