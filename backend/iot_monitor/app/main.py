@@ -7,6 +7,7 @@ from fastapi import FastAPI
 
 from app.api.api_v1 import api_router
 from app.core.config import settings
+from app.db.base import create_tables_if_sqlite
 from app.mqtt.client import get_mqtt_client
 
 # Configure logging
@@ -20,9 +21,13 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage the application lifecycle (startup/shutdown)."""
-    # Startup: Start MQTT client
+    # Startup: create SQLite tables if needed, then start MQTT client
     logger.info("Starting application...")
     logger.info(f"Service: {settings.project_name}, Version: {settings.version}")
+    try:
+        create_tables_if_sqlite()
+    except Exception as e:
+        logger.warning(f"Could not create SQLite tables (may be using PostgreSQL): {e}")
     mqtt_client = get_mqtt_client()
     try:
         await mqtt_client.start()

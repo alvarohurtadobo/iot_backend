@@ -8,9 +8,8 @@ class Settings(BaseSettings):
 
     project_name: str = "iotMonitor"
     version: str = "0.1.0"
-    database_url: str = (
-        "postgresql+psycopg2://postgres:postgres@localhost:5432/iot_monitor"
-    )
+    # Por defecto SQLite (desarrollo local). Para producción: IOT_MONITOR_DATABASE_URL=postgresql+psycopg2://...
+    database_url: str = "sqlite:///./iot_monitor.db"
     
     # MQTT configuration
     mqtt_broker_host: str = "localhost"
