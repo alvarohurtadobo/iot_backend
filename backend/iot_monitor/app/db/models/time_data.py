@@ -1,12 +1,11 @@
 """TimeData model."""
 
 from sqlalchemy import Column, String, Float, DateTime, ForeignKey, Index
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
 
-from app.db.base import Base
+from app.db.base import Base, UUID
 
 
 class TimeData(Base):
@@ -14,13 +13,13 @@ class TimeData(Base):
 
     __tablename__ = "time_data"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
     timestamp = Column(DateTime(timezone=True), nullable=False, index=True)
     value = Column(Float, nullable=False)
     unit = Column(String(50), nullable=True)
     type = Column(String(50), nullable=False)  # Data type: "double", "int", etc.
-    sensor_id = Column(UUID(as_uuid=True), ForeignKey("sensors.id"), nullable=False, index=True)
-    device_id = Column(UUID(as_uuid=True), ForeignKey("devices.id"), nullable=False, index=True)
+    sensor_id = Column(UUID(), ForeignKey("sensors.id"), nullable=False, index=True)
+    device_id = Column(UUID(), ForeignKey("devices.id"), nullable=False, index=True)
 
     # Relationships
     sensor = relationship("Sensor", back_populates="time_data")

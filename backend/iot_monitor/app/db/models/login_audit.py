@@ -1,12 +1,11 @@
 """Login audit model for tracking authentication attempts."""
 
 from sqlalchemy import Column, String, DateTime, Boolean, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
 
-from app.db.base import Base
+from app.db.base import Base, UUID
 
 
 class LoginAudit(Base):
@@ -14,8 +13,8 @@ class LoginAudit(Base):
 
     __tablename__ = "login_audits"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(), ForeignKey("users.id"), nullable=True)
     email = Column(String(255), nullable=False, index=True)
     ip_address = Column(String(45), nullable=True)  # IPv6 compatible
     user_agent = Column(String(500), nullable=True)

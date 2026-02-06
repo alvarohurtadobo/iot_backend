@@ -1,12 +1,11 @@
 """Machine model."""
 
 from sqlalchemy import Column, String, Text, Integer, DateTime, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
 
-from app.db.base import Base
+from app.db.base import Base, UUID
 
 
 class Machine(Base):
@@ -14,12 +13,12 @@ class Machine(Base):
 
     __tablename__ = "machines"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False)
     code = Column(String(100), nullable=False, unique=True, index=True)
     description = Column(Text, nullable=True)
-    business_id = Column(UUID(as_uuid=True), ForeignKey("businesses.id"), nullable=False, index=True)
-    branch_id = Column(UUID(as_uuid=True), ForeignKey("branches.id"), nullable=False, index=True)
+    business_id = Column(UUID(), ForeignKey("businesses.id"), nullable=False, index=True)
+    branch_id = Column(UUID(), ForeignKey("branches.id"), nullable=False, index=True)
     year = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)

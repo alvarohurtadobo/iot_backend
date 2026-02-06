@@ -1,11 +1,10 @@
 """Sensor model."""
 
 from sqlalchemy import Column, String, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
 
-from app.db.base import Base
+from app.db.base import Base, UUID
 
 
 class Sensor(Base):
@@ -13,11 +12,11 @@ class Sensor(Base):
 
     __tablename__ = "sensors"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(UUID(), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False)
-    type_id = Column(UUID(as_uuid=True), ForeignKey("sensor_types.id"), nullable=False, index=True)
-    device_id = Column(UUID(as_uuid=True), ForeignKey("devices.id"), nullable=False, index=True)
-    machine_id = Column(UUID(as_uuid=True), ForeignKey("machines.id"), nullable=False, index=True)
+    type_id = Column(UUID(), ForeignKey("sensor_types.id"), nullable=False, index=True)
+    device_id = Column(UUID(), ForeignKey("devices.id"), nullable=False, index=True)
+    machine_id = Column(UUID(), ForeignKey("machines.id"), nullable=False, index=True)
 
     # Relationships
     sensor_type = relationship("SensorType", back_populates="sensors")
