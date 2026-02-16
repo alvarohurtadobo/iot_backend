@@ -2,14 +2,13 @@
 
 from sqlalchemy import Column, String, Float, DateTime, ForeignKey, Index
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
 import uuid
 
 from app.db.base import Base, UUID
 
 
 class TimeData(Base):
-    """TimeData model."""
+    """Modelo de datos temporales: lecturas de sensores con timestamp, valor y unidad."""
 
     __tablename__ = "time_data"
 
@@ -17,7 +16,7 @@ class TimeData(Base):
     timestamp = Column(DateTime(timezone=True), nullable=False, index=True)
     value = Column(Float, nullable=False)
     unit = Column(String(50), nullable=True)
-    type = Column(String(50), nullable=False)  # Data type: "double", "int", etc.
+    type = Column(String(50), nullable=False)  # Tipo del valor: "double", "int", etc. (evitar usar como nombre de variable)
     sensor_id = Column(UUID(), ForeignKey("sensors.id"), nullable=False, index=True)
     device_id = Column(UUID(), ForeignKey("devices.id"), nullable=False, index=True)
 
