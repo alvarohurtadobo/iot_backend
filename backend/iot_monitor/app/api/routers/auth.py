@@ -127,11 +127,11 @@ def login(
             ip_address=ip_address,
             user_agent=user_agent,
             success=False,
-            failure_reason="Usuario no encontrado",
+            failure_reason="User not found",
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email o contraseña incorrectos",
+            detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
@@ -148,11 +148,11 @@ def login(
             ip_address=ip_address,
             user_agent=user_agent,
             success=False,
-            failure_reason="Cuenta deshabilitada",
+            failure_reason="Account disabled",
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Cuenta de usuario deshabilitada",
+            detail="User account disabled",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
@@ -170,11 +170,11 @@ def login(
             ip_address=ip_address,
             user_agent=user_agent,
             success=False,
-            failure_reason="Cuenta bloqueada",
+            failure_reason="Account locked",
         )
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
-            detail=f"Cuenta bloqueada. Intente nuevamente después de {settings.account_lockout_minutes} minutos.",
+            detail=f"Account locked. Try again after {settings.account_lockout_minutes} minutes.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
@@ -193,11 +193,11 @@ def login(
             ip_address=ip_address,
             user_agent=user_agent,
             success=False,
-            failure_reason="Contraseña incorrecta",
+            failure_reason="Incorrect password",
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Email o contraseña incorrectos",
+            detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
@@ -262,7 +262,7 @@ def refresh_token(
         logger.warning(f"Token refresh failed - invalid token: {str(exc)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token de actualización inválido",
+            detail="Invalid refresh token",
             headers={"WWW-Authenticate": "Bearer"},
         ) from exc
     
@@ -278,7 +278,7 @@ def refresh_token(
             logger.warning(f"Token refresh failed - revoked token: jti={jti}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token de actualización revocado",
+                detail="Refresh token revoked",
                 headers={"WWW-Authenticate": "Bearer"},
             )
     
@@ -287,7 +287,7 @@ def refresh_token(
     if not user_id_str:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido",
+            detail="Invalid token",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
@@ -296,7 +296,7 @@ def refresh_token(
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token inválido",
+            detail="Invalid token",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
@@ -307,7 +307,7 @@ def refresh_token(
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuario no encontrado o deshabilitado",
+            detail="User not found or disabled",
             headers={"WWW-Authenticate": "Bearer"},
         )
     

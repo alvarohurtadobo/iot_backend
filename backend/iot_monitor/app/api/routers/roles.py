@@ -64,7 +64,7 @@ def create_role(
         logger.exception(f"Error creating role: name={payload.name}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al crear rol",
+            detail="Error creating role",
         ) from e
 
 
@@ -87,7 +87,7 @@ def update_role(
         logger.exception(f"Error updating role: role_id={role_id}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al actualizar rol",
+            detail="Error updating role",
         ) from e
 
 
@@ -107,5 +107,5 @@ def delete_role(role_id: UUID, service: RoleService = Depends(get_role_service))
         logger.exception(f"Error deleting role: role_id={role_id}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al eliminar rol",
+            detail="Error deleting role",
         ) from e

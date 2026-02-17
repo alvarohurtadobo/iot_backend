@@ -25,7 +25,7 @@ def get_current_user(
     """Get the current authenticated user."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="No se pudieron validar las credenciales",
+        detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     
@@ -44,7 +44,7 @@ def get_current_user(
             if revoked:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Token revocado",
+                    detail="Token revoked",
                     headers={"WWW-Authenticate": "Bearer"},
                 )
         
@@ -76,7 +76,7 @@ def get_current_user(
     if user.deleted_at is not None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Cuenta de usuario deshabilitada",
+            detail="User account disabled",
             headers={"WWW-Authenticate": "Bearer"},
         )
     

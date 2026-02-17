@@ -72,7 +72,7 @@ def ingest_iot_data(
         )
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="El dato ya existe o viola una restricción de integridad",
+            detail="Data already exists or violates an integrity constraint",
         ) from e
     except SQLAlchemyError as e:
         db.rollback()
@@ -82,7 +82,7 @@ def ingest_iot_data(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al almacenar datos IoT en la base de datos",
+            detail="Error storing IoT data in the database",
         ) from e
     except Exception as e:
         db.rollback()
@@ -92,7 +92,7 @@ def ingest_iot_data(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error inesperado al procesar datos IoT",
+            detail="Unexpected error processing IoT data",
         ) from e
 
 
@@ -148,7 +148,7 @@ def ingest_many_iot_data(
         )
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Uno o más datos ya existen o violan restricciones de integridad",
+            detail="One or more records already exist or violate integrity constraints",
         ) from e
     except SQLAlchemyError as e:
         db.rollback()
@@ -158,7 +158,7 @@ def ingest_many_iot_data(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al almacenar datos IoT en la base de datos",
+            detail="Error storing IoT data in the database",
         ) from e
     except Exception as e:
         db.rollback()
@@ -167,7 +167,7 @@ def ingest_many_iot_data(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error inesperado al procesar datos IoT",
+            detail="Unexpected error processing IoT data",
         ) from e
 
 
@@ -217,7 +217,7 @@ def register_device_state(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al registrar estado del dispositivo",
+            detail="Error registering device state",
         ) from e
     except Exception as e:
         db.rollback()
@@ -226,7 +226,7 @@ def register_device_state(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error inesperado al procesar registro de dispositivo",
+            detail="Unexpected error processing device registration",
         ) from e
 
 
@@ -278,7 +278,7 @@ def update_device_state(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al actualizar estado del dispositivo",
+            detail="Error updating device state",
         ) from e
     except Exception as e:
         db.rollback()
@@ -287,7 +287,7 @@ def update_device_state(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error inesperado al procesar actualización de dispositivo",
+            detail="Unexpected error processing device update",
         ) from e
 
 

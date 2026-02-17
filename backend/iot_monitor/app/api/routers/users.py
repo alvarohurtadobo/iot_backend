@@ -28,7 +28,7 @@ def list_users(service: UserService = Depends(get_user_service)) -> UserList:
         logger.exception("Error listing users")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al listar usuarios",
+            detail="Error listing users",
         ) from e
 
 
@@ -49,7 +49,7 @@ def get_user(user_id: UUID, service: UserService = Depends(get_user_service)) ->
         logger.exception(f"Error retrieving user: user_id={user_id}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al obtener usuario",
+            detail="Error retrieving user",
         ) from e
 
 
@@ -71,7 +71,7 @@ def create_user(
         logger.exception(f"Error creating user: email={payload.email}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al crear usuario",
+            detail="Error creating user",
         ) from e
 
 
@@ -96,7 +96,7 @@ def update_user(
         logger.exception(f"Error updating user: user_id={user_id}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al actualizar usuario",
+            detail="Error updating user",
         ) from e
 
 
@@ -116,7 +116,7 @@ def delete_user(user_id: UUID, service: UserService = Depends(get_user_service))
         logger.exception(f"Error deleting user: user_id={user_id}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al eliminar usuario",
+            detail="Error deleting user",
         ) from e
 
 
@@ -138,5 +138,5 @@ def get_current_user_info(current_user: User = Depends(get_current_user)) -> Use
         logger.exception(f"Error getting current user info: user_id={current_user.id}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al obtener información del usuario",
+            detail="Error retrieving user information",
         ) from e
