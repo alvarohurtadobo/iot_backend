@@ -8,7 +8,7 @@ from app.db.base import Base, UUID
 
 
 class TimeData(Base):
-    """Modelo de datos temporales: lecturas de sensores con timestamp, valor y unidad."""
+    """Time-series data model: sensor readings with timestamp, value and unit."""
 
     __tablename__ = "time_data"
 
@@ -16,7 +16,7 @@ class TimeData(Base):
     timestamp = Column(DateTime(timezone=True), nullable=False, index=True)
     value = Column(Float, nullable=False)
     unit = Column(String(50), nullable=True)
-    type = Column(String(50), nullable=False)  # Tipo del valor: "double", "int", etc. (evitar usar como nombre de variable)
+    type = Column(String(50), nullable=False)  # Value type: "double", "int", etc. (avoid using as variable name)
     sensor_id = Column(UUID(), ForeignKey("sensors.id"), nullable=False, index=True)
     device_id = Column(UUID(), ForeignKey("devices.id"), nullable=False, index=True)
 

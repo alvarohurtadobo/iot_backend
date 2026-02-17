@@ -8,7 +8,7 @@ import uuid
 
 from app.core.config import settings
 
-# Tipo UUID compatible con SQLite y PostgreSQL (se guarda como string en SQLite)
+# UUID type compatible with SQLite and PostgreSQL (stored as string in SQLite)
 class UUID(TypeDecorator):
     impl = CHAR(36)
     cache_ok = True
@@ -35,7 +35,7 @@ class UUID(TypeDecorator):
             return value
         return uuid.UUID(value) if value else None
 
-# Parámetros del engine según el dialecto
+# Engine parameters according to dialect
 _connect_args = {}
 if settings.database_url.startswith("sqlite"):
     _connect_args["check_same_thread"] = False
@@ -64,7 +64,7 @@ def get_db():
 
 
 def create_tables_if_sqlite() -> None:
-    """Crea las tablas desde los modelos cuando se usa SQLite (útil para desarrollo local)."""
+    """Create tables from models when using SQLite (useful for local development)."""
     if settings.database_url.startswith("sqlite"):
-        import app.db.models  # noqa: F401 - registra todos los modelos en Base.metadata
+        import app.db.models  # noqa: F401 - registers all models in Base.metadata
         Base.metadata.create_all(bind=engine)

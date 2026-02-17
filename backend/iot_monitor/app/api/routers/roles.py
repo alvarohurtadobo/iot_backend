@@ -26,7 +26,7 @@ def list_roles(service: RoleService = Depends(get_role_service)) -> RoleList:
         logger.exception("Error listing roles")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al listar roles",
+            detail="Error listing roles",
         ) from e
 
 
@@ -47,7 +47,7 @@ def get_role(role_id: UUID, service: RoleService = Depends(get_role_service)) ->
         logger.exception(f"Error retrieving role: role_id={role_id}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error al obtener rol",
+            detail="Error retrieving role",
         ) from e
 
 
