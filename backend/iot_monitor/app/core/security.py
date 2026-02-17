@@ -73,19 +73,19 @@ def validate_password_strength(password: str) -> tuple[bool, str | None]:
     Returns (is_valid, error_message).
     """
     if len(password) < settings.password_min_length:
-        return False, f"La contraseña debe tener al menos {settings.password_min_length} caracteres"
+        return False, f"Password must be at least {settings.password_min_length} characters"
     
     if not re.search(r"[A-Z]", password):
-        return False, "La contraseña debe contener al menos una letra mayúscula"
+        return False, "Password must contain at least one uppercase letter"
     
     if not re.search(r"[a-z]", password):
-        return False, "La contraseña debe contener al menos una letra minúscula"
+        return False, "Password must contain at least one lowercase letter"
     
     if not re.search(r"\d", password):
-        return False, "La contraseña debe contener al menos un número"
+        return False, "Password must contain at least one number"
     
     if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-        return False, "La contraseña debe contener al menos un carácter especial"
+        return False, "Password must contain at least one special character"
     
     return True, None
 

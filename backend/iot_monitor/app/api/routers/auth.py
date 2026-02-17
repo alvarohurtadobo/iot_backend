@@ -371,7 +371,7 @@ def logout(
     except ValueError:
         # Token already invalid, consider it logged out
         logger.debug("Logout attempted with invalid token (already logged out)")
-        return {"message": "Sesión cerrada exitosamente"}
+        return {"message": "Session closed successfully"}
     
     jti = payload.get("jti")
     user_id = payload.get("sub")
@@ -400,5 +400,5 @@ def logout(
             logger.error(f"Error during logout: jti={jti}, error={str(e)}")
             db.rollback()
     
-    return {"message": "Sesión cerrada exitosamente"}
+    return {"message": "Session closed successfully"}
 

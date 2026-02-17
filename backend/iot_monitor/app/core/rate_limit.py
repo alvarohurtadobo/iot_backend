@@ -35,7 +35,7 @@ def check_rate_limit(request: Request, key: str | None = None) -> None:
     if len(_rate_limit_store[key]) >= settings.rate_limit_per_minute:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Demasiadas solicitudes. Por favor, intente más tarde.",
+            detail="Too many requests. Please try again later.",
             headers={"Retry-After": "60"},
         )
     
